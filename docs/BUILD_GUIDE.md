@@ -76,6 +76,10 @@ uv run games-for-grandpa
 
 **Concepts:** array, set, recursion, minimax, alpha-beta pruning, memoization.
 
+**Build order:** implement the fixed board and legal-move set, test every winning line, add
+random and minimax strategy objects, then exhaustively explore every player path against the
+Challenge strategy. Only after that proof passes should pygame drawing be added.
+
 ```powershell
 uv run pytest tests/test_three_in_row.py
 ```
