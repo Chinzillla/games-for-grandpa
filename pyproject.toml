@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "games-for-grandpa"
-version = "0.2.1"
+version = "0.2.2"
 description = "Accessible mouse-only games that demonstrate Python, OOP, and core algorithms."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -29,7 +29,8 @@ packages = ["src/games_for_grandpa"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "src/games_for_grandpa/assets/duck.png" = "games_for_grandpa/assets/duck.png"
-"src/games_for_grandpa/assets/rifle.png" = "games_for_grandpa/assets/rifle.png"
+"src/games_for_grandpa/assets/duck_hit.png" = "games_for_grandpa/assets/duck_hit.png"
+"src/games_for_grandpa/assets/first_person_shotgun.png" = "games_for_grandpa/assets/first_person_shotgun.png"
 
 [tool.pytest.ini_options]
 addopts = "-q"

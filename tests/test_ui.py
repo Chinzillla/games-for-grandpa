@@ -47,31 +47,14 @@ def test_registry_has_stable_ids() -> None:
     ]
 
 
-def test_game_hud_only_shows_home_and_menu_during_play() -> None:
+def test_game_hud_only_shows_home_and_sound_during_play() -> None:
     controller = StubController()
-    restarts: list[str] = []
-    hud = GameHud(
-        controller,
-        "target_tap",
-        on_restart=lambda: restarts.append("restart"),
-        on_difficulty=lambda: None,
-    )
+    hud = GameHud(controller)
 
-    assert not hud.paused
     assert hud.home_button.label == "Home"
-    assert hud.menu_button.label == "Menu"
+    assert hud.sound_button.label == "Sound On"
 
     hud.handle_event(
-        pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=hud.menu_button.rect.center)
+        pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=hud.sound_button.rect.center)
     )
-    assert hud.paused
-
-    hud.handle_event(
-        pygame.event.Event(
-            pygame.MOUSEBUTTONDOWN,
-            button=1,
-            pos=hud.menu_buttons[1].rect.center,
-        )
-    )
-    assert not hud.paused
-    assert restarts == ["restart"]
+    assert not controller.settings.sound_enabled

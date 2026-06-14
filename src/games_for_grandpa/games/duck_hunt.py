@@ -8,15 +8,26 @@ from enum import Enum
 from games_for_grandpa.core import Difficulty
 
 DUCKS_TO_COMPLETE = 10
+STARTING_LIVES = 10
 FLIGHT_LEFT = 120.0
 FLIGHT_RIGHT = 1160.0
 FLIGHT_TOP = 125.0
-FLIGHT_BOTTOM = 525.0
+FLIGHT_BOTTOM = 470.0
+ESCAPE_MARGIN = 95.0
+HIT_DISPLAY_SECONDS = 0.55
 
 
 class DuckHuntState(Enum):
     PLAYING = "playing"
+    HIT = "hit"
     COMPLETE = "complete"
+    GAME_OVER = "game_over"
+
+
+class DuckHuntEvent(Enum):
+    ESCAPED = "escaped"
+    COMPLETE = "complete"
+    GAME_OVER = "game_over"
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,14 +73,14 @@ class FlightScheduler:
 
 class DuckHuntModel:
     SPEED_BY_DIFFICULTY = {
-        Difficulty.EASY: 125.0,
-        Difficulty.NORMAL: 175.0,
-        Difficulty.CHALLENGE: 225.0,
+        Difficulty.EASY: 190.0,
+        Difficulty.NORMAL: 255.0,
+        Difficulty.CHALLENGE: 330.0,
     }
     HIT_RADIUS_BY_DIFFICULTY = {
-        Difficulty.EASY: 82.0,
-        Difficulty.NORMAL: 72.0,
-        Difficulty.CHALLENGE: 62.0,
+        Difficulty.EASY: 62.0,
+        Difficulty.NORMAL: 54.0,
+        Difficulty.CHALLENGE: 46.0,
     }
 
     def __init__(
@@ -81,6 +92,8 @@ class DuckHuntModel:
         self.difficulty = difficulty
         self.scheduler = scheduler or FlightScheduler()
         self.score = 0
+        self.lives = STARTING_LIVES
+        self.hit_timer = 0.0
         self.state = DuckHuntState.PLAYING
         self.duck = Duck(0, 0, 0, 0)
         self._spawn_duck()
@@ -89,26 +102,27 @@ class DuckHuntModel:
     def hit_radius(self) -> float:
         return self.HIT_RADIUS_BY_DIFFICULTY[self.difficulty]
 
-    def update(self, dt: float) -> None:
-        if self.state is DuckHuntState.COMPLETE:
-            return
+    def update(self, dt: float) -> set[DuckHuntEvent]:
+        events: set[DuckHuntEvent] = set()
+        if self.state is DuckHuntState.HIT:
+            self.hit_timer -= dt
+            self.duck.y += 180.0 * dt
+            if self.hit_timer <= 0:
+                if self.score >= DUCKS_TO_COMPLETE:
+                    self.state = DuckHuntState.COMPLETE
+                    events.add(DuckHuntEvent.COMPLETE)
+                else:
+                    self._spawn_duck()
+            return events
+        if self.state is not DuckHuntState.PLAYING:
+            return events
         self.duck.x += self.duck.vx * dt
         self.duck.y += self.duck.vy * dt
 
-        # DSA: Reflection checks each axis once, so movement remains O(1) per frame.
-        if self.duck.x < FLIGHT_LEFT:
-            self.duck.x = FLIGHT_LEFT
-            self.duck.vx = abs(self.duck.vx)
-        elif self.duck.x > FLIGHT_RIGHT:
-            self.duck.x = FLIGHT_RIGHT
-            self.duck.vx = -abs(self.duck.vx)
-
-        if self.duck.y < FLIGHT_TOP:
-            self.duck.y = FLIGHT_TOP
-            self.duck.vy = abs(self.duck.vy)
-        elif self.duck.y > FLIGHT_BOTTOM:
-            self.duck.y = FLIGHT_BOTTOM
-            self.duck.vy = -abs(self.duck.vy)
+        # DSA: Constant-time bounds checks detect an escaped duck without scanning objects.
+        if self._duck_escaped():
+            events.update(self._lose_life())
+        return events
 
     def shoot(self, position: tuple[int, int]) -> bool:
         if self.state is DuckHuntState.COMPLETE:
@@ -119,10 +133,8 @@ class DuckHuntModel:
             return False
 
         self.score += 1
-        if self.score >= DUCKS_TO_COMPLETE:
-            self.state = DuckHuntState.COMPLETE
-        else:
-            self._spawn_duck()
+        self.hit_timer = HIT_DISPLAY_SECONDS
+        self.state = DuckHuntState.HIT
         return True
 
     def reset(self, difficulty: Difficulty | None = None) -> None:
@@ -130,8 +142,28 @@ class DuckHuntModel:
             self.difficulty = difficulty
         self.scheduler.reset()
         self.score = 0
+        self.lives = STARTING_LIVES
+        self.hit_timer = 0.0
         self.state = DuckHuntState.PLAYING
         self._spawn_duck()
+
+    def _duck_escaped(self) -> bool:
+        return (
+            self.duck.x < FLIGHT_LEFT - ESCAPE_MARGIN
+            or self.duck.x > FLIGHT_RIGHT + ESCAPE_MARGIN
+            or self.duck.y < FLIGHT_TOP - ESCAPE_MARGIN
+            or self.duck.y > FLIGHT_BOTTOM + ESCAPE_MARGIN
+        )
+
+    def _lose_life(self) -> set[DuckHuntEvent]:
+        self.lives = max(0, self.lives - 1)
+        events = {DuckHuntEvent.ESCAPED}
+        if self.lives == 0:
+            self.state = DuckHuntState.GAME_OVER
+            events.add(DuckHuntEvent.GAME_OVER)
+        else:
+            self._spawn_duck()
+        return events
 
     def _spawn_duck(self) -> None:
         pattern = self.scheduler.next_pattern()

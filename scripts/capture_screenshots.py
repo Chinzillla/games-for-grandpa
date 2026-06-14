@@ -30,10 +30,6 @@ def main() -> int:
         for name, scene in scenes:
             scene.draw(app.canvas)
             pygame.image.save(app.canvas, output / f"{name}.png")
-        menu_scene = app.registry["target_tap"].scene_factory(app)
-        menu_scene.hud.menu_open = True
-        menu_scene.draw(app.canvas)
-        pygame.image.save(app.canvas, output / "game-menu.png")
     finally:
         app.shutdown()
     return 0

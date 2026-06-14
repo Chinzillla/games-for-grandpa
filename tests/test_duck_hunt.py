@@ -5,7 +5,11 @@ import random
 from games_for_grandpa.core import Difficulty
 from games_for_grandpa.games.duck_hunt import (
     DUCKS_TO_COMPLETE,
-    FLIGHT_LEFT,
+    ESCAPE_MARGIN,
+    FLIGHT_RIGHT,
+    HIT_DISPLAY_SECONDS,
+    STARTING_LIVES,
+    DuckHuntEvent,
     DuckHuntModel,
     DuckHuntState,
     FlightScheduler,
@@ -29,15 +33,27 @@ def test_duck_moves_with_elapsed_time() -> None:
     assert (model.duck.x, model.duck.y) != start
 
 
-def test_duck_reflects_at_flight_boundary() -> None:
+def test_duck_escape_removes_one_life_and_respawns() -> None:
     model = DuckHuntModel()
-    model.duck.x = FLIGHT_LEFT - 1
-    model.duck.vx = -100
+    model.duck.x = FLIGHT_RIGHT + ESCAPE_MARGIN + 1
 
-    model.update(0)
+    events = model.update(0)
 
-    assert model.duck.x == FLIGHT_LEFT
-    assert model.duck.vx > 0
+    assert DuckHuntEvent.ESCAPED in events
+    assert model.lives == STARTING_LIVES - 1
+    assert model.state is DuckHuntState.PLAYING
+
+
+def test_zero_lives_ends_duck_hunt() -> None:
+    model = DuckHuntModel()
+    model.lives = 1
+    model.duck.x = FLIGHT_RIGHT + ESCAPE_MARGIN + 1
+
+    events = model.update(0)
+
+    assert DuckHuntEvent.GAME_OVER in events
+    assert model.lives == 0
+    assert model.state is DuckHuntState.GAME_OVER
 
 
 def test_missed_shot_does_not_remove_points() -> None:
@@ -52,6 +68,8 @@ def test_shooting_duck_completes_after_ten_hits() -> None:
 
     for _ in range(DUCKS_TO_COMPLETE):
         assert model.shoot((round(model.duck.x), round(model.duck.y)))
+        assert model.state is DuckHuntState.HIT
+        model.update(HIT_DISPLAY_SECONDS)
 
     assert model.score == DUCKS_TO_COMPLETE
     assert model.state is DuckHuntState.COMPLETE

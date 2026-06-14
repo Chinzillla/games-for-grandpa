@@ -85,7 +85,7 @@ class HomeScene(Scene):
     def _draw_header(self, surface: pygame.Surface) -> None:
         theme.draw_left_text(
             surface,
-            "Grandpa's Game Room",
+            "Game Room",
             50,
             theme.INK,
             (48, 34),

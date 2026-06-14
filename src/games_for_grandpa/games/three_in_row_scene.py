@@ -3,13 +3,13 @@ from __future__ import annotations
 import pygame
 
 from games_for_grandpa import theme
-from games_for_grandpa.core import AppController, Scene
+from games_for_grandpa.core import AppController, Difficulty, Scene
 from games_for_grandpa.games.three_in_row import (
     Mark,
     ThreeInRowModel,
     ThreeInRowState,
 )
-from games_for_grandpa.ui import GameHud
+from games_for_grandpa.ui import GameHud, ResultActions
 
 BOARD_RECT = pygame.Rect(325, 125, 630, 570)
 CELL_WIDTH = BOARD_RECT.width // 3
@@ -21,25 +21,22 @@ class ThreeInRowScene(Scene):
 
     def __init__(self, controller: AppController) -> None:
         self.controller = controller
-        self.model = ThreeInRowModel(controller.settings.difficulty_for(self.GAME_ID))
-        self.hud = GameHud(
-            controller,
-            self.GAME_ID,
-            on_restart=self._restart,
-            on_difficulty=self._restart,
-        )
+        self.model = ThreeInRowModel(Difficulty.NORMAL)
+        self.hud = GameHud(controller)
+        self.result_actions = ResultActions(controller, self._restart)
 
     def _restart(self) -> None:
-        self.model.reset(self.controller.settings.difficulty_for(self.GAME_ID))
+        self.model.reset(Difficulty.NORMAL)
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
+        if self.model.state is not ThreeInRowState.PLAYING:
+            self.result_actions.handle_event(event)
+            return
         if self.hud.handle_event(event):
             return
         if (
-            self.hud.paused
-            or self.model.state is not ThreeInRowState.PLAYING
-            or event.type != pygame.MOUSEBUTTONDOWN
+            event.type != pygame.MOUSEBUTTONDOWN
             or event.button != 1
             or not BOARD_RECT.collidepoint(event.pos)
         ):
@@ -64,7 +61,9 @@ class ThreeInRowScene(Scene):
         self._draw_board(surface)
         if self.model.state is not ThreeInRowState.PLAYING:
             self._draw_result(surface)
-        self.hud.draw(surface)
+            self.result_actions.draw(surface)
+        else:
+            self.hud.draw(surface)
 
     def _draw_title(self, surface: pygame.Surface) -> None:
         badge = pygame.Rect(505, 28, 270, 58)
@@ -130,7 +129,7 @@ class ThreeInRowScene(Scene):
         )
 
     def _draw_result(self, surface: pygame.Surface) -> None:
-        panel = pygame.Rect(420, 245, 440, 220)
+        panel = pygame.Rect(370, 230, 540, 270)
         theme.draw_card(surface, panel, color=theme.WHITE, shadow_offset=8, radius=30)
         message = {
             ThreeInRowState.PLAYER_WON: "You won!",
@@ -138,11 +137,3 @@ class ThreeInRowScene(Scene):
             ThreeInRowState.DRAW: "A draw!",
         }[self.model.state]
         theme.draw_text(surface, message, 48, theme.INK, (640, 315), bold=True)
-        theme.draw_text(
-            surface,
-            "Open Menu to play again.",
-            24,
-            theme.BLUE_DARK,
-            (640, 395),
-            bold=True,
-        )

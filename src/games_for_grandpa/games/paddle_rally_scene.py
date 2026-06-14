@@ -3,7 +3,7 @@ from __future__ import annotations
 import pygame
 
 from games_for_grandpa import theme
-from games_for_grandpa.core import AppController, Scene
+from games_for_grandpa.core import AppController, Difficulty, Scene
 from games_for_grandpa.games.paddle_rally import (
     PLAY_BOTTOM,
     PLAY_LEFT,
@@ -14,7 +14,7 @@ from games_for_grandpa.games.paddle_rally import (
     RallyEvent,
     RallyState,
 )
-from games_for_grandpa.ui import GameHud
+from games_for_grandpa.ui import GameHud, ResultActions
 
 
 class PaddleRallyScene(Scene):
@@ -22,29 +22,24 @@ class PaddleRallyScene(Scene):
 
     def __init__(self, controller: AppController) -> None:
         self.controller = controller
-        self.model = PaddleRallyModel(controller.settings.difficulty_for(self.GAME_ID))
-        self.hud = GameHud(
-            controller,
-            self.GAME_ID,
-            on_restart=self._restart,
-            on_difficulty=self._restart,
-        )
+        self.model = PaddleRallyModel(Difficulty.EASY)
+        self.hud = GameHud(controller)
+        self.result_actions = ResultActions(controller, self._restart)
 
     def _restart(self) -> None:
-        self.model.reset(self.controller.settings.difficulty_for(self.GAME_ID))
+        self.model.reset(Difficulty.EASY)
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        if self.hud.handle_event(event):
+        if self.model.state is not RallyState.PLAYING:
+            self.result_actions.handle_event(event)
             return
-        if self.hud.paused or self.model.state is not RallyState.PLAYING:
+        if self.hud.handle_event(event):
             return
         if event.type in {pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN}:
             self.model.move_player(event.pos[1])
 
     def update(self, dt: float) -> None:
-        if self.hud.paused:
-            return
         events = self.model.update(dt)
         if RallyEvent.COMPLETE in events:
             self.controller.record_score(self.GAME_ID, self.model.player_score)
@@ -59,7 +54,9 @@ class PaddleRallyScene(Scene):
         self._draw_play_area(surface)
         if self.model.state is not RallyState.PLAYING:
             self._draw_complete(surface)
-        self.hud.draw(surface)
+            self.result_actions.draw(surface)
+        else:
+            self.hud.draw(surface)
 
     def _draw_play_area(self, surface: pygame.Surface) -> None:
         play_rect = pygame.Rect(
@@ -115,15 +112,7 @@ class PaddleRallyScene(Scene):
         pygame.draw.rect(surface, color, rect, border_radius=14)
 
     def _draw_complete(self, surface: pygame.Surface) -> None:
-        panel = pygame.Rect(350, 255, 580, 230)
+        panel = pygame.Rect(350, 230, 580, 270)
         theme.draw_card(surface, panel, color=theme.CREAM, shadow_offset=10, radius=32)
         message = "You won!" if self.model.state is RallyState.PLAYER_WON else "Good game!"
-        theme.draw_text(surface, message, 52, theme.INK, (640, 330), bold=True)
-        theme.draw_text(
-            surface,
-            "Open Menu to play again.",
-            25,
-            theme.BLUE_DARK,
-            (640, 410),
-            bold=True,
-        )
+        theme.draw_text(surface, message, 52, theme.INK, (640, 315), bold=True)

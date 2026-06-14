@@ -6,13 +6,15 @@ from importlib.resources import files
 import pygame
 
 from games_for_grandpa import theme
-from games_for_grandpa.core import AppController, Scene
+from games_for_grandpa.core import AppController, Difficulty, Scene
 from games_for_grandpa.games.duck_hunt import (
     DUCKS_TO_COMPLETE,
+    STARTING_LIVES,
+    DuckHuntEvent,
     DuckHuntModel,
     DuckHuntState,
 )
-from games_for_grandpa.ui import GameHud
+from games_for_grandpa.ui import GameHud, ResultActions
 
 
 class DuckHuntScene(Scene):
@@ -20,61 +22,83 @@ class DuckHuntScene(Scene):
 
     def __init__(self, controller: AppController) -> None:
         self.controller = controller
-        self.model = DuckHuntModel(controller.settings.difficulty_for(self.GAME_ID))
+        self.model = DuckHuntModel(Difficulty.CHALLENGE)
         self.crosshair = (640, 360)
+
         duck_path = files("games_for_grandpa.assets").joinpath("duck.png")
-        source = pygame.image.load(str(duck_path)).convert_alpha()
-        self.duck_sprite = pygame.transform.smoothscale(source, (220, 171))
-        rifle_path = files("games_for_grandpa.assets").joinpath("rifle.png")
-        rifle_source = pygame.image.load(str(rifle_path)).convert_alpha()
-        self.rifle_sprite = pygame.transform.smoothscale(rifle_source, (470, 61))
-        self.hud = GameHud(
-            controller,
-            self.GAME_ID,
-            on_restart=self._restart,
-            on_difficulty=self._restart,
+        duck_source = pygame.image.load(str(duck_path)).convert_alpha()
+        self.duck_sprite = pygame.transform.smoothscale(duck_source, (126, 98))
+
+        hit_path = files("games_for_grandpa.assets").joinpath("duck_hit.png")
+        hit_source = pygame.image.load(str(hit_path)).convert_alpha()
+        self.duck_hit_sprite = pygame.transform.smoothscale(hit_source, (154, 92))
+
+        shotgun_path = files("games_for_grandpa.assets").joinpath("first_person_shotgun.png")
+        shotgun_source = pygame.image.load(str(shotgun_path)).convert_alpha()
+        self.shotgun_sprite = pygame.transform.smoothscale(shotgun_source, (430, 267))
+
+        self.hud = GameHud(controller)
+        self.result_actions = ResultActions(controller, self._restart)
+
+    def _finished(self) -> bool:
+        return self.model.state in (
+            DuckHuntState.COMPLETE,
+            DuckHuntState.GAME_OVER,
+        )
+
+    def _duck_visible(self) -> bool:
+        return self.model.state in (
+            DuckHuntState.PLAYING,
+            DuckHuntState.HIT,
         )
 
     def _restart(self) -> None:
-        self.model.reset(self.controller.settings.difficulty_for(self.GAME_ID))
+        self.model.reset(Difficulty.CHALLENGE)
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
+        if self._finished():
+            self.result_actions.handle_event(event)
+            return
         if self.hud.handle_event(event):
             return
         if hasattr(event, "pos"):
             self.crosshair = event.pos
         if (
-            self.hud.paused
-            or self.model.state is DuckHuntState.COMPLETE
+            self.model.state is not DuckHuntState.PLAYING
             or event.type != pygame.MOUSEBUTTONDOWN
             or event.button != 1
         ):
             return
+        self.controller.play_sound("gunshot")
         if self.model.shoot(event.pos):
-            if self.model.state is DuckHuntState.COMPLETE:
-                self.controller.record_score(self.GAME_ID, self.model.score)
-                self.controller.play_sound("complete")
-            else:
-                self.controller.play_sound("success")
-        else:
-            self.controller.play_sound("point")
+            self.controller.play_sound("quack")
 
     def update(self, dt: float) -> None:
-        if self.hud.paused:
-            return
-        self.model.update(dt)
+        events = self.model.update(dt)
+        if DuckHuntEvent.ESCAPED in events:
+            self.controller.play_sound("point")
+        if DuckHuntEvent.COMPLETE in events:
+            self.controller.record_score(self.GAME_ID, self.model.score)
+            self.controller.play_sound("complete")
+        elif DuckHuntEvent.GAME_OVER in events:
+            self.controller.record_score(self.GAME_ID, self.model.score)
 
     def draw(self, surface: pygame.Surface) -> None:
         self._draw_world(surface)
-        if self.model.state is DuckHuntState.PLAYING:
+        if self._duck_visible():
             self._draw_duck(surface)
-            self._draw_rifle(surface)
+            self._draw_shotgun(surface)
             self._draw_crosshair(surface)
         else:
-            self._draw_complete(surface)
-        self._draw_score(surface)
-        self.hud.draw(surface)
+            self._draw_result(surface)
+
+        if self._finished():
+            self.result_actions.draw(surface)
+        else:
+            self._draw_score(surface)
+            self._draw_hearts(surface)
+            self.hud.draw(surface)
 
     def _draw_world(self, surface: pygame.Surface) -> None:
         theme.vertical_gradient(surface, theme.SKY, theme.SKY_LIGHT)
@@ -109,31 +133,20 @@ class DuckHuntScene(Scene):
         )
 
     def _draw_duck(self, surface: pygame.Surface) -> None:
-        sprite = (
-            self.duck_sprite
-            if self.model.duck.vx >= 0
-            else pygame.transform.flip(self.duck_sprite, True, False)
-        )
-        rect = sprite.get_rect(
-            center=(round(self.model.duck.x), round(self.model.duck.y))
-        )
+        sprite = self.duck_hit_sprite if self.model.state is DuckHuntState.HIT else self.duck_sprite
+        if self.model.duck.vx < 0:
+            sprite = pygame.transform.flip(sprite, True, False)
+        rect = sprite.get_rect(center=(round(self.model.duck.x), round(self.model.duck.y)))
         surface.blit(sprite, rect)
 
-    def _draw_rifle(self, surface: pygame.Surface) -> None:
-        stock_anchor = pygame.Vector2(390, 700)
-        target = pygame.Vector2(self.crosshair)
-        # DSA: Constant-time vector geometry maps the cursor to one sprite rotation.
-        direction = target - stock_anchor
-        if direction.length_squared() == 0:
-            direction = pygame.Vector2(0, -1)
-        direction = direction.normalize()
-        angle = -math.degrees(math.atan2(direction.y, direction.x))
-        rotated = pygame.transform.rotozoom(self.rifle_sprite, angle, 1.0)
-        center = stock_anchor + direction * (self.rifle_sprite.get_width() / 2)
-        surface.blit(
-            rotated,
-            rotated.get_rect(center=(round(center.x), round(center.y))),
-        )
+    def _draw_shotgun(self, surface: pygame.Surface) -> None:
+        aim_x = (self.crosshair[0] - 640) / 640
+        aim_y = (self.crosshair[1] - 360) / 360
+        # DSA: O(1) angle math maps cursor offset to a subtle first-person aim pose.
+        angle = -math.degrees(math.atan2(aim_x, 9.5))
+        rotated = pygame.transform.rotozoom(self.shotgun_sprite, angle, 1.0)
+        center = (round(640 + aim_x * 38), round(650 + aim_y * 16))
+        surface.blit(rotated, rotated.get_rect(center=center))
 
     def _draw_crosshair(self, surface: pygame.Surface) -> None:
         x, y = self.crosshair
@@ -154,16 +167,25 @@ class DuckHuntScene(Scene):
             bold=True,
         )
 
-    def _draw_complete(self, surface: pygame.Surface) -> None:
-        panel = pygame.Rect(330, 210, 620, 280)
+    def _draw_hearts(self, surface: pygame.Surface) -> None:
+        start_x = 490
+        for index in range(STARTING_LIVES):
+            color = theme.CORAL if index < self.model.lives else pygame.Color("#E2E8F0")
+            x = start_x + index * 33
+            y = 98
+            pygame.draw.circle(surface, color, (x - 7, y - 5), 8)
+            pygame.draw.circle(surface, color, (x + 7, y - 5), 8)
+            pygame.draw.polygon(surface, color, [(x - 16, y - 2), (x + 16, y - 2), (x, y + 18)])
+            pygame.draw.polygon(surface, theme.WHITE, [(x - 6, y - 5), (x, y - 10), (x + 6, y - 5)])
+
+    def _draw_result(self, surface: pygame.Surface) -> None:
+        panel = pygame.Rect(330, 210, 620, 300)
         theme.draw_card(surface, panel, color=theme.CREAM, shadow_offset=10, radius=34)
-        theme.draw_text(surface, "Great shooting!", 52, theme.INK, (640, 290), bold=True)
-        theme.draw_text(surface, "You found all 10 ducks.", 30, theme.INK_SOFT, (640, 365))
-        theme.draw_text(
-            surface,
-            "Open Menu to play again.",
-            25,
-            theme.BLUE_DARK,
-            (640, 425),
-            bold=True,
-        )
+        if self.model.state is DuckHuntState.COMPLETE:
+            title = "You win!"
+            detail = "10 ducks hit."
+        else:
+            title = "Try again!"
+            detail = "The ducks got away."
+        theme.draw_text(surface, title, 52, theme.INK, (640, 290), bold=True)
+        theme.draw_text(surface, detail, 30, theme.INK_SOFT, (640, 350))
