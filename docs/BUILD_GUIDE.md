@@ -57,6 +57,10 @@ uv run games-for-grandpa --smoke-test
 
 **Concepts:** list-backed candidate pool, bounded deque, state machine.
 
+**Build order:** create `TargetScheduler` and test recent-position avoidance, add
+`TargetTapModel` and its hit detection, then connect the model to a scene. Notice that tests
+can click logical coordinates without initializing a pygame window.
+
 ```powershell
 uv run pytest tests/test_target_tap.py
 uv run games-for-grandpa
