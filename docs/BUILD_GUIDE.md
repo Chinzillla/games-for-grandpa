@@ -94,6 +94,10 @@ uv run pytest tests/test_three_in_row.py
 
 **Concepts:** vectors, clamping, collision detection, reflection, strategy objects.
 
+**Build order:** define paddle and ball data, test clamping and wall reflection, add
+constant-time paddle collision, implement scoring, then introduce AI strategies. Test the
+physics model with fixed time steps before drawing it in pygame.
+
 ```powershell
 uv run pytest tests/test_paddle_rally.py
 ```
