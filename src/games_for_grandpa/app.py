@@ -2,18 +2,21 @@ from __future__ import annotations
 
 import argparse
 import os
+import tempfile
 from collections.abc import Sequence
+from pathlib import Path
 
 import pygame
 
+from games_for_grandpa.audio import SoundBank
 from games_for_grandpa.core import (
     LOGICAL_SIZE,
     GameDefinition,
     SceneStack,
-    Settings,
     Viewport,
 )
 from games_for_grandpa.games import build_game_registry
+from games_for_grandpa.persistence import JsonDataStore
 from games_for_grandpa.scenes import HomeScene
 
 
@@ -21,9 +24,17 @@ class App:
     def __init__(self, *, smoke_test: bool = False) -> None:
         self.smoke_test = smoke_test
         self.running = True
-        self.settings = Settings()
+        if smoke_test:
+            data_path = Path(tempfile.gettempdir()) / "games-for-grandpa-smoke.json"
+            self.data_store = JsonDataStore(data_path)
+        else:
+            self.data_store = JsonDataStore()
+        saved = self.data_store.load()
+        self.settings = saved.settings
+        self.scores = saved.scores
         self.registry: dict[str, GameDefinition] = build_game_registry()
 
+        pygame.mixer.pre_init(44_100, -16, 1, 512)
         pygame.init()
         pygame.display.set_caption("Games for Grandpa")
         if smoke_test:
@@ -34,6 +45,7 @@ class App:
         self.window = pygame.display.set_mode(window_size, pygame.RESIZABLE)
         self.canvas = pygame.Surface(LOGICAL_SIZE)
         self.clock = pygame.time.Clock()
+        self.sound_bank = SoundBank()
         self.scenes = SceneStack()
         self.scenes.push(HomeScene(self, self.registry))
 
@@ -45,10 +57,24 @@ class App:
         self.scenes.push(definition.scene_factory(self))
 
     def save_settings(self) -> None:
-        return
+        self.data_store.save(self.settings, self.scores)
 
     def play_sound(self, sound_name: str) -> None:
-        del sound_name
+        if self.settings.sound_enabled:
+            self.sound_bank.play(sound_name)
+
+    def record_score(self, game_id: str, score: int) -> None:
+        self.scores[game_id] = max(score, self.scores.get(game_id, 0))
+        self.save_settings()
+
+    def best_score(self, game_id: str) -> int:
+        return self.scores.get(game_id, 0)
+
+    def smoke_test_scenes(self) -> None:
+        for definition in self.registry.values():
+            scene = definition.scene_factory(self)
+            scene.update(1 / 60)
+            scene.draw(self.canvas)
 
     def _logical_event(
         self, event: pygame.event.Event, viewport: Viewport
@@ -105,4 +131,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
         os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
     app = App(smoke_test=args.smoke_test)
+    if args.smoke_test:
+        app.smoke_test_scenes()
     return app.run(frame_limit=3 if args.smoke_test else None)

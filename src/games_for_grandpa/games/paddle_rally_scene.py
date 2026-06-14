@@ -56,6 +56,7 @@ class PaddleRallyScene(Scene):
             return
         events = self.model.update(dt)
         if RallyEvent.COMPLETE in events:
+            self.controller.record_score(self.GAME_ID, self.model.player_score)
             self.controller.play_sound("complete")
         elif RallyEvent.POINT in events:
             self.controller.play_sound("point")
@@ -169,4 +170,3 @@ class PaddleRallyScene(Scene):
             theme.MUTED_TEXT,
             (640, 435),
         )
-

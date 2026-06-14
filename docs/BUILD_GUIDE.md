@@ -112,6 +112,10 @@ uv run pytest tests/test_paddle_rally.py
 
 **Concepts:** JSON serialization, defensive loading, CI, deterministic packaging.
 
+**Build order:** add a data store with corrupt-file tests, generate simple tones in memory,
+exercise every scene in dummy SDL mode, package with PyInstaller, then let GitHub Actions run
+the same checks and publish the resulting ZIP.
+
 ```powershell
 uv run ruff check .
 uv run pytest

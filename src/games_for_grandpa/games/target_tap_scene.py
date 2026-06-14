@@ -47,6 +47,8 @@ class TargetTapScene(Scene):
             and event.button == 1
             and self.model.click(event.pos)
         ):
+            if self.model.state is TargetTapState.COMPLETE:
+                self.controller.record_score(self.GAME_ID, self.model.score)
             sound = (
                 "complete" if self.model.state is TargetTapState.COMPLETE else "success"
             )

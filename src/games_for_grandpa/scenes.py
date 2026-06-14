@@ -95,6 +95,13 @@ class HomeScene(Scene):
                     theme.MUTED_TEXT,
                     (card.centerx, 360 + line_index * 42),
                 )
+            theme.draw_text(
+                surface,
+                f"Saved best: {self.controller.best_score(definition.game_id)}",
+                28,
+                theme.MUTED_TEXT,
+                (card.centerx, 462),
+            )
             self.game_buttons[index].draw(surface)
 
         theme.draw_text(
@@ -151,4 +158,3 @@ class ComingSoonScene(Scene):
             theme.MUTED_TEXT,
             (640, 455),
         )
-

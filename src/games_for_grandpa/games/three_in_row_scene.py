@@ -56,6 +56,9 @@ class ThreeInRowScene(Scene):
         row = (event.pos[1] - BOARD_RECT.y) // CELL_SIZE
         index = row * 3 + column
         if self.model.player_move(index):
+            if self.model.state is not ThreeInRowState.PLAYING:
+                score = 1 if self.model.state is ThreeInRowState.PLAYER_WON else 0
+                self.controller.record_score(self.GAME_ID, score)
             sound = "complete" if self.model.state is not ThreeInRowState.PLAYING else "success"
             self.controller.play_sound(sound)
 
@@ -197,4 +200,3 @@ class ThreeInRowScene(Scene):
             theme.MUTED_TEXT,
             (640, 435),
         )
-

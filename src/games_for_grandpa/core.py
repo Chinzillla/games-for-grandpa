@@ -95,6 +95,10 @@ class AppController(Protocol):
 
     def play_sound(self, sound_name: str) -> None: ...
 
+    def record_score(self, game_id: str, score: int) -> None: ...
+
+    def best_score(self, game_id: str) -> int: ...
+
 
 SceneFactory = Callable[[AppController], Scene]
 
@@ -138,4 +142,3 @@ class Viewport:
             round((x - self.offset_x) / self.scale),
             round((y - self.offset_y) / self.scale),
         )
-
