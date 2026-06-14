@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.1 - 2026-06-14
+
+### Changed
+
+- Replaced the placeholder Duck Hunt rifle with an original transparent hunting shotgun
+  sprite featuring realistic wood and metal materials.
+- Rotated the shotgun toward the mouse using constant-time vector and angle calculations.
+- Refreshed the Duck Hunt and launcher screenshots to show the upgraded artwork.
+
 ## v0.2.0 - 2026-06-14
 
 ### Changed

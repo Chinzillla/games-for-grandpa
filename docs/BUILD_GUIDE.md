@@ -148,6 +148,31 @@ visible during play, and the duck moves continuously until clicked.
 
 **Checkpoint:** `git checkout lesson-07-ui-redesign`
 
+## Lesson 8: Aiming Sprite
+
+**Goal:** Replace a procedural rifle placeholder with a polished transparent sprite that
+still follows the mouse.
+
+**Concepts:** alpha transparency, resource packaging, vector normalization, angle
+calculation, sprite rotation, and anchor-based positioning.
+
+**Build order:** add the transparent PNG to the package, load it through
+`importlib.resources`, calculate the normalized vector from the stock to the cursor, convert
+that direction into an angle with `atan2`, rotate the source sprite, then position its center
+halfway along the aiming vector.
+
+```powershell
+uv run ruff check .
+uv run pytest
+uv run games-for-grandpa --smoke-test
+uv run python scripts/capture_screenshots.py
+```
+
+**Expected result:** the wooden hunting shotgun remains anchored near the bottom of the
+screen and points at the crosshair throughout the playable area.
+
+**Checkpoint:** `git checkout lesson-08-rifle-art`
+
 ## Reading a checkpoint
 
 Use these commands to understand what changed:
