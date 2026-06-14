@@ -37,6 +37,11 @@ uv run ruff check .
 
 **Concepts:** interfaces, stack data structure, dictionary registry, event loop, coordinates.
 
+**Build order:** implement `Scene` and `SceneStack`, add the 1280 x 720 canvas and
+coordinate conversion, create the dictionary game registry, then build `Button`,
+`GameToolbar`, and `HomeScene`. Keeping this order makes each layer testable before the
+next layer depends on it.
+
 ```powershell
 uv run pytest
 uv run games-for-grandpa --smoke-test
@@ -118,4 +123,3 @@ git diff lesson-02-framework..lesson-03-target-tap
 
 Read domain models before scenes. Models explain the rules; scenes mainly translate input
 and render model state.
-
