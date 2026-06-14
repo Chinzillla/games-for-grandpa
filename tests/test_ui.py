@@ -39,11 +39,31 @@ def test_button_only_responds_to_left_click_inside() -> None:
 def test_registry_has_stable_ids() -> None:
     registry = build_game_registry()
 
-    assert list(registry) == ["target_tap", "three_in_row", "paddle_rally"]
+    assert list(registry) == [
+        "target_tap",
+        "three_in_row",
+        "connect_four",
+        "paddle_rally",
+        "space_defense",
+        "maze_chase",
+        "whack_a_mole",
+        "target_practice",
+        "memory_cards",
+        "jigsaw_puzzle",
+        "fishing_game",
+    ]
     assert [definition.title for definition in registry.values()] == [
         "Duck Hunt",
         "Tic Tac Toe",
+        "Connect Four",
         "Pong",
+        "Space Defense",
+        "Maze Chase",
+        "Whack-a-Mole",
+        "Target Practice",
+        "Memory Cards",
+        "Jigsaw Puzzle",
+        "Fishing",
     ]
 
 

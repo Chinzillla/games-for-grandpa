@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.3.0 - 2026-06-14
+
+### Added
+
+- Added Connect Four with legal-column tracking and depth-limited minimax AI.
+- Added Space Defense with mouse movement, automatic firing, enemy formation updates, and
+  collision tests.
+- Added Maze Chase with click-to-travel movement, pellet collection, and BFS enemy pathing.
+- Added Whack-a-Mole, Target Practice, Memory Cards, Jigsaw Puzzle, and Fishing.
+- Added paged Game Room browsing so the launcher stays large and readable with eleven games.
+- Added pure model tests and screenshots for every new game.
+
+### Changed
+
+- Updated the roadmap around a larger v0.3 catalog release instead of spreading the same
+  requested list across later versions.
+
 ## v0.2.2 - 2026-06-14
 
 ### Changed

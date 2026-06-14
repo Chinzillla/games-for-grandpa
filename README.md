@@ -11,7 +11,15 @@ data structures, algorithms, testing, packaging, and release automation.
 
 - **Duck Hunt:** aim the shotgun, hit ten small moving ducks, and protect ten hearts.
 - **Tic Tac Toe:** play against medium minimax AI.
+- **Connect Four:** drop pieces into a column against depth-limited AI.
 - **Pong:** move one paddle with the mouse against easy speed-limited AI.
+- **Space Defense:** move horizontally while automatic shots clear a simple invader wave.
+- **Maze Chase:** click a neighboring path or destination and collect the dots.
+- **Whack-a-Mole:** click the visible mole before it moves.
+- **Target Practice:** shoot a slow duck-shaped target moving across a range.
+- **Memory Cards:** flip two simple visual cards and find every matching pair.
+- **Jigsaw Puzzle:** swap 3 x 3 pieces, with an optional photo picker.
+- **Fishing:** move the rod, lower the hook, then reel gently without breaking the line.
 
 Artwork is original, using code-drawn UI plus generated transparent sprites. This project is
 not affiliated with or endorsed by any commercial game publisher.

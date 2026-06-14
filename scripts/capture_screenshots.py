@@ -20,9 +20,22 @@ def main() -> int:
         names = {
             "target_tap": "duck-hunt",
             "three_in_row": "tic-tac-toe",
+            "connect_four": "connect-four",
             "paddle_rally": "pong",
+            "space_defense": "space-defense",
+            "maze_chase": "maze-chase",
+            "whack_a_mole": "whack-a-mole",
+            "target_practice": "target-practice",
+            "memory_cards": "memory-cards",
+            "jigsaw_puzzle": "jigsaw-puzzle",
+            "fishing_game": "fishing",
         }
-        scenes = [("game-room", HomeScene(app, app.registry))]
+        home_scene = HomeScene(app, app.registry)
+        scenes = [("game-room", home_scene)]
+        for page in range(home_scene.page_count):
+            paged_scene = HomeScene(app, app.registry)
+            paged_scene.page = page
+            scenes.append((f"game-room-page-{page + 1}", paged_scene))
         scenes.extend(
             (names[definition.game_id], definition.scene_factory(app))
             for definition in app.registry.values()

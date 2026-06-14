@@ -27,7 +27,17 @@ class GameCard:
 
 
 class HomeScene(Scene):
-    CARD_COLORS = (theme.SKY_LIGHT, pygame.Color("#EFEAFF"), pygame.Color("#E7F8EF"))
+    CARD_COLORS = (
+        theme.SKY_LIGHT,
+        pygame.Color("#EFEAFF"),
+        pygame.Color("#E7F8EF"),
+    )
+    PAGE_SIZE = 3
+    CARD_RECTS = (
+        pygame.Rect(48, 165, 365, 475),
+        pygame.Rect(458, 165, 365, 475),
+        pygame.Rect(868, 165, 365, 475),
+    )
 
     def __init__(
         self,
@@ -41,22 +51,51 @@ class HomeScene(Scene):
             "Sound On",
             self._toggle_sound,
         )
+        self.page = 0
         self.cards = [
             GameCard(
-                pygame.Rect(48 + index * 410, 165, 365, 475),
+                pygame.Rect(0, 0, 365, 475),
                 definition.game_id,
                 definition.title,
             )
-            for index, definition in enumerate(registry.values())
+            for definition in registry.values()
         ]
+        self.previous_button = Button(
+            pygame.Rect(925, 650, 140, 54),
+            "Back",
+            self._previous_page,
+            accent=pygame.Color("#EFEAFF"),
+        )
+        self.next_button = Button(
+            pygame.Rect(1090, 650, 140, 54),
+            "Next",
+            self._next_page,
+            accent=theme.SKY,
+        )
         self.previews = {
             definition.game_id: self._render_preview(definition)
             for definition in registry.values()
         }
 
+    @property
+    def page_count(self) -> int:
+        return max(1, (len(self.cards) + self.PAGE_SIZE - 1) // self.PAGE_SIZE)
+
+    def _visible_cards(self) -> list[GameCard]:
+        start = self.page * self.PAGE_SIZE
+        return self.cards[start : start + self.PAGE_SIZE]
+
     def _toggle_sound(self) -> None:
         self.controller.settings.sound_enabled = not self.controller.settings.sound_enabled
         self.controller.save_settings()
+        self.controller.play_sound("click")
+
+    def _previous_page(self) -> None:
+        self.page = max(0, self.page - 1)
+        self.controller.play_sound("click")
+
+    def _next_page(self) -> None:
+        self.page = min(self.page_count - 1, self.page + 1)
         self.controller.play_sound("click")
 
     def _render_preview(self, definition: GameDefinition) -> pygame.Surface:
@@ -67,7 +106,12 @@ class HomeScene(Scene):
     def handle_event(self, event: pygame.event.Event) -> None:
         if self.sound_button.handle_event(event):
             return
-        for card in self.cards:
+        if self.page_count > 1 and (
+            self.previous_button.handle_event(event) or self.next_button.handle_event(event)
+        ):
+            return
+        for index, card in enumerate(self._visible_cards()):
+            card.rect = self.CARD_RECTS[index]
             if card.handle_event(event):
                 self.controller.play_sound("click")
                 self.controller.start_game(card.game_id)
@@ -79,8 +123,10 @@ class HomeScene(Scene):
     def draw(self, surface: pygame.Surface) -> None:
         theme.vertical_gradient(surface, theme.CREAM, pygame.Color("#FFEED9"))
         self._draw_header(surface)
-        for index, card in enumerate(self.cards):
+        for index, card in enumerate(self._visible_cards()):
+            card.rect = self.CARD_RECTS[index]
             self._draw_card(surface, card, self.CARD_COLORS[index])
+        self._draw_page_controls(surface)
 
     def _draw_header(self, surface: pygame.Surface) -> None:
         theme.draw_left_text(
@@ -102,6 +148,22 @@ class HomeScene(Scene):
             "Sound On" if self.controller.settings.sound_enabled else "Sound Off"
         )
         self.sound_button.draw(surface)
+
+    def _draw_page_controls(self, surface: pygame.Surface) -> None:
+        if self.page_count <= 1:
+            return
+        self.previous_button.enabled = self.page > 0
+        self.next_button.enabled = self.page < self.page_count - 1
+        theme.draw_text(
+            surface,
+            f"Page {self.page + 1} / {self.page_count}",
+            24,
+            theme.INK_SOFT,
+            (810, 676),
+            bold=True,
+        )
+        self.previous_button.draw(surface)
+        self.next_button.draw(surface)
 
     def _draw_card(
         self,
