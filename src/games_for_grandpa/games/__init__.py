@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 from games_for_grandpa.core import AppController, GameDefinition
+from games_for_grandpa.games.target_tap_scene import TargetTapScene
 from games_for_grandpa.scenes import ComingSoonScene
 
 
 def build_game_registry() -> dict[str, GameDefinition]:
     definitions = (
-        _placeholder(
-            "target_tap",
-            "Target Tap",
-            "Click 10 large targets.\nMissing never removes points.",
+        GameDefinition(
+            game_id="target_tap",
+            title="Target Tap",
+            description="Click 10 large targets.\nMissing never removes points.",
+            scene_factory=TargetTapScene,
         ),
         _placeholder(
             "three_in_row",
