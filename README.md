@@ -43,3 +43,5 @@ uv run games-for-grandpa --smoke-test
 Download the portable ZIP from GitHub Releases, extract it, and open
 `GamesForGrandpa.exe`. The first release is unsigned, so Windows SmartScreen may ask you to
 confirm that you want to run it.
+
+Release maintainers should follow [`docs/RELEASE.md`](docs/RELEASE.md).

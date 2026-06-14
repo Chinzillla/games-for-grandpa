@@ -120,7 +120,7 @@ the same checks and publish the resulting ZIP.
 uv run ruff check .
 uv run pytest
 uv run games-for-grandpa --smoke-test
-.\scripts\build.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 ```
 
 **Expected result:** `dist/GamesForGrandpa-windows.zip` contains a runnable application.

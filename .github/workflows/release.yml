@@ -1,0 +1,45 @@
+name: Windows release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6.0.3
+      - uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run pytest
+      - run: uv run games-for-grandpa --smoke-test
+      - name: Build portable Windows ZIP
+        shell: pwsh
+        run: ./scripts/build.ps1
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: GamesForGrandpa-windows
+          path: |
+            dist/GamesForGrandpa-windows.zip
+            dist/GamesForGrandpa-windows.zip.sha256
+          if-no-files-found: error
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "${{ github.ref_name }}"
+          dist/GamesForGrandpa-windows.zip
+          dist/GamesForGrandpa-windows.zip.sha256
+          --verify-tag
+          --generate-notes
+          --title "Games for Grandpa ${{ github.ref_name }}"
+
