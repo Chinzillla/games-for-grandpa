@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from importlib.resources import files
 
 import pygame
@@ -24,6 +25,9 @@ class DuckHuntScene(Scene):
         duck_path = files("games_for_grandpa.assets").joinpath("duck.png")
         source = pygame.image.load(str(duck_path)).convert_alpha()
         self.duck_sprite = pygame.transform.smoothscale(source, (220, 171))
+        rifle_path = files("games_for_grandpa.assets").joinpath("rifle.png")
+        rifle_source = pygame.image.load(str(rifle_path)).convert_alpha()
+        self.rifle_sprite = pygame.transform.smoothscale(rifle_source, (470, 61))
         self.hud = GameHud(
             controller,
             self.GAME_ID,
@@ -116,34 +120,20 @@ class DuckHuntScene(Scene):
         surface.blit(sprite, rect)
 
     def _draw_rifle(self, surface: pygame.Surface) -> None:
-        origin = pygame.Vector2(500, 670)
+        stock_anchor = pygame.Vector2(390, 700)
         target = pygame.Vector2(self.crosshair)
-        direction = target - origin
+        # DSA: Constant-time vector geometry maps the cursor to one sprite rotation.
+        direction = target - stock_anchor
         if direction.length_squared() == 0:
             direction = pygame.Vector2(0, -1)
         direction = direction.normalize()
-        barrel_end = origin + direction * 205
-        side = pygame.Vector2(-direction.y, direction.x)
-        pygame.draw.line(surface, theme.BLACK, origin, barrel_end, 24)
-        pygame.draw.line(surface, theme.INK_SOFT, origin, barrel_end, 13)
-        stock = [
-            origin + side * 34,
-            origin - side * 27,
-            origin - side * 20 - direction * 115,
-            origin + side * 27 - direction * 105,
-        ]
-        pygame.draw.polygon(surface, theme.BROWN, stock)
-        pygame.draw.polygon(
-            surface,
-            theme.BROWN,
-            [
-                origin - direction * 18,
-                origin - direction * 68,
-                origin - direction * 58 + side * 42,
-                origin - direction * 8 + side * 20,
-            ],
+        angle = -math.degrees(math.atan2(direction.y, direction.x))
+        rotated = pygame.transform.rotozoom(self.rifle_sprite, angle, 1.0)
+        center = stock_anchor + direction * (self.rifle_sprite.get_width() / 2)
+        surface.blit(
+            rotated,
+            rotated.get_rect(center=(round(center.x), round(center.y))),
         )
-        pygame.draw.circle(surface, theme.BLACK, barrel_end, 13)
 
     def _draw_crosshair(self, surface: pygame.Surface) -> None:
         x, y = self.crosshair
