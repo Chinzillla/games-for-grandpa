@@ -17,7 +17,7 @@ game card using only the mouse.
 ## Publish
 
 ```powershell
-git tag -a v0.1.0 -m "Games for Grandpa v0.1.0"
+git tag -a v0.2.0 -m "Games for Grandpa v0.2.0"
 git push origin main --follow-tags
 ```
 

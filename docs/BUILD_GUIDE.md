@@ -127,6 +127,27 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
 **Checkpoint:** `git checkout lesson-06-release`
 
+## Lesson 7: UI Redesign and Duck Hunt
+
+**Goal:** Replace the first prototype visuals with a colorful, simplified game room.
+
+**Concepts:** TrueType font discovery, off-screen scene rendering, velocity, reflection,
+bounded history, modal UI state, and backward-compatible IDs.
+
+**Build order:** replace bitmap fonts, render real scene screenshots into launcher cards,
+move secondary controls into a modal menu, replace Target Tap with `DuckHuntModel`, then
+restyle Tic Tac Toe and Pong without changing their tested domain logic.
+
+```powershell
+uv run pytest tests/test_duck_hunt.py tests/test_ui.py tests/test_navigation.py
+uv run games-for-grandpa
+```
+
+**Expected result:** the launcher shows screenshot cards, each game has only Home and Menu
+visible during play, and the duck moves continuously until clicked.
+
+**Checkpoint:** `git checkout lesson-07-ui-redesign`
+
 ## Reading a checkpoint
 
 Use these commands to understand what changed:

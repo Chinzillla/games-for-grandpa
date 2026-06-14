@@ -67,9 +67,9 @@ class DuckHuntModel:
         Difficulty.CHALLENGE: 225.0,
     }
     HIT_RADIUS_BY_DIFFICULTY = {
-        Difficulty.EASY: 70.0,
-        Difficulty.NORMAL: 58.0,
-        Difficulty.CHALLENGE: 48.0,
+        Difficulty.EASY: 82.0,
+        Difficulty.NORMAL: 72.0,
+        Difficulty.CHALLENGE: 62.0,
     }
 
     def __init__(
@@ -142,4 +142,3 @@ class DuckHuntModel:
             pattern.direction_x * speed,
             pattern.direction_y * speed,
         )
-

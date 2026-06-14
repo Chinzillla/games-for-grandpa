@@ -9,9 +9,12 @@ data structures, algorithms, testing, packaging, and release automation.
 
 ## Included games
 
-- **Target Tap:** click ten large targets with no penalty for missing.
-- **Three in a Row:** play against random, depth-limited minimax, or full minimax AI.
-- **Paddle Rally:** move one paddle with the mouse against speed-limited predictive AI.
+- **Duck Hunt:** aim the rifle and click ten moving ducks.
+- **Tic Tac Toe:** play against random, depth-limited minimax, or full minimax AI.
+- **Pong:** move one paddle with the mouse against speed-limited predictive AI.
+
+All artwork is original and drawn in code. This project is not affiliated with or endorsed
+by any commercial game publisher.
 
 ## Run from source
 

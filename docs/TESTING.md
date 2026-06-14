@@ -14,11 +14,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 The suite verifies:
 
 - scene-stack, registry, viewport, and mouse-button behavior;
-- all Target Tap scheduling and scoring rules;
-- every Three in a Row winning line and all reachable player paths against Challenge AI;
-- Paddle Rally reflection, prediction, clamping, collision, speed limits, and scoring;
+- Duck Hunt movement, boundary reflection, flight scheduling, hit detection, and scoring;
+- every Tic Tac Toe winning line and all reachable player paths against Challenge AI;
+- Pong reflection, prediction, clamping, collision, speed limits, and scoring;
 - missing, corrupt, and valid persistence files;
 - mouse-only navigation from Home into a game and back;
+- the minimal Home/Menu HUD and modal restart behavior;
 - rendering every scene for 1280 x 720 and 1920 x 1080 output;
 - headless initialization and drawing of every registered game.
 
@@ -37,4 +38,3 @@ player, spend at least ten minutes in each game and check:
 - Easy difficulty feels forgiving;
 - no game traps the player on a result screen;
 - the unsigned SmartScreen instructions are understandable.
-

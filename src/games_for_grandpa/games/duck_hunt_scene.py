@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import math
+from importlib.resources import files
 
 import pygame
 
@@ -21,7 +21,9 @@ class DuckHuntScene(Scene):
         self.controller = controller
         self.model = DuckHuntModel(controller.settings.difficulty_for(self.GAME_ID))
         self.crosshair = (640, 360)
-        self.animation_time = 0.0
+        duck_path = files("games_for_grandpa.assets").joinpath("duck.png")
+        source = pygame.image.load(str(duck_path)).convert_alpha()
+        self.duck_sprite = pygame.transform.smoothscale(source, (220, 171))
         self.hud = GameHud(
             controller,
             self.GAME_ID,
@@ -57,7 +59,6 @@ class DuckHuntScene(Scene):
     def update(self, dt: float) -> None:
         if self.hud.paused:
             return
-        self.animation_time += dt
         self.model.update(dt)
 
     def draw(self, surface: pygame.Surface) -> None:
@@ -104,27 +105,15 @@ class DuckHuntScene(Scene):
         )
 
     def _draw_duck(self, surface: pygame.Surface) -> None:
-        x = round(self.model.duck.x)
-        y = round(self.model.duck.y)
-        facing = 1 if self.model.duck.vx >= 0 else -1
-        wing_lift = round(math.sin(self.animation_time * 10) * 14)
-        pygame.draw.ellipse(surface, theme.SHADOW, pygame.Rect(x - 58, y + 38, 118, 24))
-        pygame.draw.ellipse(surface, theme.BROWN, pygame.Rect(x - 55, y - 28, 100, 62))
-        pygame.draw.circle(surface, theme.GREEN_DARK, (x + facing * 43, y - 16), 32)
-        beak_x = x + facing * 72
-        pygame.draw.polygon(
-            surface,
-            theme.YELLOW,
-            [(x + facing * 65, y - 20), (beak_x, y - 11), (x + facing * 65, y - 3)],
+        sprite = (
+            self.duck_sprite
+            if self.model.duck.vx >= 0
+            else pygame.transform.flip(self.duck_sprite, True, False)
         )
-        eye_x = x + facing * 50
-        pygame.draw.circle(surface, theme.WHITE, (eye_x, y - 25), 7)
-        pygame.draw.circle(surface, theme.BLACK, (eye_x + facing * 2, y - 25), 3)
-        wing_rect = pygame.Rect(x - 34, y - 55 - wing_lift, 68, 50)
-        pygame.draw.ellipse(surface, theme.CREAM, wing_rect)
-        pygame.draw.ellipse(surface, theme.CREAM, pygame.Rect(x - 22, y + 3 + wing_lift, 65, 44))
-        pygame.draw.line(surface, theme.YELLOW_DARK, (x - 18, y + 28), (x - 28, y + 48), 5)
-        pygame.draw.line(surface, theme.YELLOW_DARK, (x + 8, y + 28), (x + 18, y + 48), 5)
+        rect = sprite.get_rect(
+            center=(round(self.model.duck.x), round(self.model.duck.y))
+        )
+        surface.blit(sprite, rect)
 
     def _draw_rifle(self, surface: pygame.Surface) -> None:
         origin = pygame.Vector2(500, 670)

@@ -38,6 +38,7 @@ foreach ($path in @($appDirectory, $buildDirectory, $zipPath, $checksumPath)) {
     --windowed `
     --name GamesForGrandpa `
     --paths src `
+    --add-data "src/games_for_grandpa/assets;games_for_grandpa/assets" `
     src/games_for_grandpa/__main__.py
 
 Copy-Item README.md, LICENSE -Destination $appDirectory
@@ -49,4 +50,3 @@ $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $zipPath).Hash.ToLowerInvar
 
 Write-Host "Built $zipPath"
 Write-Host "SHA-256: $hash"
-

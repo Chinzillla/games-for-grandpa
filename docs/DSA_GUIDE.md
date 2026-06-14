@@ -21,13 +21,14 @@ is average O(1), and adding a game does not require a large conditional statemen
 Enums represent a small set of valid states, such as PLAYING, PAUSED, and COMPLETE. This
 prevents contradictory Boolean combinations and makes transitions explicit.
 
-## Target Tap
+## Duck Hunt
 
-The scheduler stores candidate target positions in a list for indexed selection. A bounded
-`deque` remembers recent positions. Membership checks are O(k), where k is intentionally
-small, and appending automatically discards the oldest item.
+The duck has continuous position and velocity values. Each frame updates those vectors and
+reflects velocity at the flight boundaries in O(1). A list stores reusable flight patterns,
+while a bounded `deque` remembers the three most recent pattern indices so new ducks do not
+repeat the same route.
 
-## Three in a Row
+## Tic Tac Toe
 
 The board is a fixed nine-element list. A set tracks legal moves for O(1) average membership
 and removal. Minimax recursively explores future moves. Alpha-beta pruning skips branches
@@ -36,7 +37,7 @@ that cannot affect the result. A dictionary memoizes repeated board states.
 The full search is practical because the game tree is small. Easy uses a random legal move,
 Normal limits search depth, and Challenge searches to terminal states.
 
-## Paddle Rally
+## Pong
 
 Positions and velocities are two-dimensional vectors. Rectangle intersection detects paddle
 collisions. Reflection reverses the relevant velocity component. Challenge AI predicts where
@@ -47,4 +48,3 @@ area. Each prediction is O(1).
 
 Settings and scores are dictionaries serialized as JSON. Reading and writing are O(n) in the
 small document size. Invalid files fall back to safe defaults instead of preventing startup.
-

@@ -85,28 +85,34 @@ class GameHud:
         )
         self.menu_buttons = [
             Button(
-                pygame.Rect(440, 245, 400, 62),
+                pygame.Rect(440, 185, 400, 62),
                 "Continue",
                 self._close_menu,
                 accent=theme.GREEN,
             ),
             Button(
-                pygame.Rect(440, 325, 400, 62),
+                pygame.Rect(440, 265, 400, 62),
                 "Restart",
                 self._restart,
                 accent=theme.YELLOW,
             ),
             Button(
-                pygame.Rect(440, 405, 400, 62),
+                pygame.Rect(440, 345, 400, 62),
                 "Difficulty  Easy",
                 self._cycle_difficulty,
                 accent=theme.SKY,
             ),
             Button(
-                pygame.Rect(440, 485, 400, 62),
+                pygame.Rect(440, 425, 400, 62),
                 "Sound  On",
                 self._toggle_sound,
                 accent=pygame.Color("#EFEAFF"),
+            ),
+            Button(
+                pygame.Rect(440, 505, 400, 62),
+                "Game Room",
+                controller.go_home,
+                accent=pygame.Color("#FFDDE8"),
             ),
         ]
 
@@ -152,9 +158,9 @@ class GameHud:
         overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
         overlay.fill((23, 33, 58, 170))
         surface.blit(overlay, (0, 0))
-        panel = pygame.Rect(390, 135, 500, 485)
+        panel = pygame.Rect(390, 75, 500, 555)
         theme.draw_card(surface, panel, color=theme.CREAM, shadow_offset=10, radius=32)
-        theme.draw_text(surface, "Game Menu", 44, theme.INK, (640, 190), bold=True)
+        theme.draw_text(surface, "Game Menu", 42, theme.INK, (640, 130), bold=True)
         sound = "On" if self.controller.settings.sound_enabled else "Off"
         difficulty = self.controller.settings.difficulty_for(self.game_id)
         self.menu_buttons[2].label = f"Difficulty  {difficulty.value}"

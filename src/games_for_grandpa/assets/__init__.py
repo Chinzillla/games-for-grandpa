@@ -1,0 +1,2 @@
+"""Packaged visual assets."""
+
