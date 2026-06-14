@@ -11,13 +11,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 ```
 
 Extract `dist/GamesForGrandpa-windows.zip` into a new directory and run
-`GamesForGrandpa.exe`. Verify Home, Pause, Continue, Restart, Sound, Difficulty, and every
-game card using only the mouse.
+`GamesForGrandpa.exe`. Verify Home, Restart, Sound, and every game card using only the
+mouse.
 
 ## Publish
 
 ```powershell
-git tag -a v0.2.1 -m "Games for Grandpa v0.2.1"
+git tag -a v0.2.2 -m "Games for Grandpa v0.2.2"
 git push origin main --follow-tags
 ```
 

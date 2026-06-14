@@ -131,8 +131,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
 **Goal:** Replace the first prototype visuals with a colorful, simplified game room.
 
-**Concepts:** TrueType font discovery, off-screen scene rendering, velocity, reflection,
-bounded history, modal UI state, and backward-compatible IDs.
+**Concepts:** TrueType font discovery, off-screen scene rendering, velocity, bounded
+history, modal UI state, and backward-compatible IDs.
 
 **Build order:** replace bitmap fonts, render real scene screenshots into launcher cards,
 move secondary controls into a modal menu, replace Target Tap with `DuckHuntModel`, then
@@ -143,23 +143,23 @@ uv run pytest tests/test_duck_hunt.py tests/test_ui.py tests/test_navigation.py
 uv run games-for-grandpa
 ```
 
-**Expected result:** the launcher shows screenshot cards, each game has only Home and Menu
+**Expected result:** the launcher shows screenshot cards, each game has only Home and Sound
 visible during play, and the duck moves continuously until clicked.
 
 **Checkpoint:** `git checkout lesson-07-ui-redesign`
 
 ## Lesson 8: Aiming Sprite
 
-**Goal:** Replace a procedural rifle placeholder with a polished transparent sprite that
-still follows the mouse.
+**Goal:** Replace a procedural rifle placeholder with a polished first-person transparent
+sprite that still follows the mouse.
 
-**Concepts:** alpha transparency, resource packaging, vector normalization, angle
-calculation, sprite rotation, and anchor-based positioning.
+**Concepts:** alpha transparency, resource packaging, angle calculation, subtle sprite
+rotation, and first-person overlay positioning.
 
 **Build order:** add the transparent PNG to the package, load it through
-`importlib.resources`, calculate the normalized vector from the stock to the cursor, convert
-that direction into an angle with `atan2`, rotate the source sprite, then position its center
-halfway along the aiming vector.
+`importlib.resources`, calculate cursor offset from the screen center, convert that offset
+into a small angle with `atan2`, rotate the source sprite, then keep it anchored at the
+bottom of the screen.
 
 ```powershell
 uv run ruff check .
@@ -172,6 +172,28 @@ uv run python scripts/capture_screenshots.py
 screen and points at the crosshair throughout the playable area.
 
 **Checkpoint:** `git checkout lesson-08-rifle-art`
+
+## Lesson 9: One-Click Game Flow
+
+**Goal:** Remove the modal menu and make Duck Hunt more game-like without complicating the
+controls.
+
+**Concepts:** finite-state machine, fixed scene difficulty, O(1) bounds checks, result
+actions, generated audio, and transparent reaction sprites.
+
+**Build order:** simplify `GameHud` to Home and Sound, move Home/Restart into result
+screens, fix scene difficulties, add Duck Hunt lives and escape events, add gunshot/quack
+effects, then refresh screenshots.
+
+```powershell
+uv run pytest tests/test_duck_hunt.py tests/test_ui.py tests/test_navigation.py
+uv run games-for-grandpa --smoke-test
+```
+
+**Expected result:** games require no menu choices, Duck Hunt shows ten hearts, escaped ducks
+cost hearts, and result screens expose only Home and Restart.
+
+**Checkpoint:** `git checkout lesson-09-simple-flow`
 
 ## Reading a checkpoint
 

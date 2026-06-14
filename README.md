@@ -5,16 +5,16 @@ An accessible, mouse-only collection of original desktop games written in Python
 The project is also a sequential learning portfolio for object-oriented programming,
 data structures, algorithms, testing, packaging, and release automation.
 
-![Games for Grandpa menu](docs/images/game-room.png)
+![Games for Grandpa game room](docs/images/game-room.png)
 
 ## Included games
 
-- **Duck Hunt:** aim the rifle and click ten moving ducks.
-- **Tic Tac Toe:** play against random, depth-limited minimax, or full minimax AI.
-- **Pong:** move one paddle with the mouse against speed-limited predictive AI.
+- **Duck Hunt:** aim the shotgun, hit ten small moving ducks, and protect ten hearts.
+- **Tic Tac Toe:** play against medium minimax AI.
+- **Pong:** move one paddle with the mouse against easy speed-limited AI.
 
-All artwork is original and drawn in code. This project is not affiliated with or endorsed
-by any commercial game publisher.
+Artwork is original, using code-drawn UI plus generated transparent sprites. This project is
+not affiliated with or endorsed by any commercial game publisher.
 
 ## Run from source
 

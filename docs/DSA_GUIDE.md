@@ -9,7 +9,7 @@ Source comments beginning with `# DSA:` point back to these ideas.
 
 Navigation uses a Python list as a stack. The last scene is the active scene. `append`
 pushes a scene and `pop` returns to the previous scene. Both operations are amortized O(1).
-This matches menu -> game -> pause navigation naturally.
+This matches game room -> game navigation naturally.
 
 ### Game registry
 
@@ -18,15 +18,16 @@ is average O(1), and adding a game does not require a large conditional statemen
 
 ### Finite-state machines
 
-Enums represent a small set of valid states, such as PLAYING, PAUSED, and COMPLETE. This
-prevents contradictory Boolean combinations and makes transitions explicit.
+Enums represent a small set of valid states, such as PLAYING, HIT, COMPLETE, and GAME_OVER.
+This prevents contradictory Boolean combinations and makes transitions explicit.
 
 ## Duck Hunt
 
 The duck has continuous position and velocity values. Each frame updates those vectors and
-reflects velocity at the flight boundaries in O(1). A list stores reusable flight patterns,
-while a bounded `deque` remembers the three most recent pattern indices so new ducks do not
-repeat the same route.
+checks escape bounds in O(1). Escaped ducks subtract one life; the finite-state machine ends
+the round at either ten hits or zero lives. A list stores reusable flight patterns, while a
+bounded `deque` remembers the three most recent pattern indices so new ducks do not repeat
+the same route.
 
 ## Tic Tac Toe
 

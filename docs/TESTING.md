@@ -14,12 +14,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 The suite verifies:
 
 - scene-stack, registry, viewport, and mouse-button behavior;
-- Duck Hunt movement, boundary reflection, flight scheduling, hit detection, and scoring;
+- Duck Hunt movement, flight scheduling, hit detection, escape/life loss, and scoring;
 - every Tic Tac Toe winning line and all reachable player paths against Challenge AI;
 - Pong reflection, prediction, clamping, collision, speed limits, and scoring;
 - missing, corrupt, and valid persistence files;
 - mouse-only navigation from Home into a game and back;
-- the minimal Home/Menu HUD and modal restart behavior;
+- the minimal Home/Sound HUD and result-screen restart behavior;
 - rendering every scene for 1280 x 720 and 1920 x 1080 output;
 - headless initialization and drawing of every registered game.
 
@@ -32,9 +32,9 @@ Automated checks do not replace play testing. Before sharing a release with the 
 player, spend at least ten minutes in each game and check:
 
 - every action is possible without a keyboard;
-- Home, Pause, Continue, Restart, Sound, and Difficulty remain easy to hit;
+- Home, Restart, and Sound remain easy to hit;
 - text remains readable at the intended monitor resolution;
 - generated sounds are comfortable;
-- Easy difficulty feels forgiving;
+- fixed per-game difficulty feels appropriate for the intended player;
 - no game traps the player on a result screen;
 - the unsigned SmartScreen instructions are understandable.

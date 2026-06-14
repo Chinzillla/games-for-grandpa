@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.2.2 - 2026-06-14
+
+### Changed
+
+- Removed the in-game Menu button and difficulty picker; games now show only Home and
+  Sound On/Off during play.
+- Result screens now show only the ending message plus Home and Restart.
+- Renamed the launcher header to Game Room.
+- Replaced the side-view Duck Hunt rifle with a smaller first-person shotgun-and-hands
+  overlay.
+- Made Duck Hunt faster and smaller, added ten hearts, and made escaped ducks cost one
+  heart.
+- Added a hit-duck sprite, gunshot sound, and quack sound.
+- Fixed Tic Tac Toe to medium difficulty and Pong to easy difficulty in the player UI.
+
 ## v0.2.1 - 2026-06-14
 
 ### Changed

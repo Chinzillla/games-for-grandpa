@@ -9,7 +9,7 @@
 - Do not flash, shake the screen, or use sudden loud audio.
 - Missing a target does not remove points.
 - Losing produces a calm result and an immediate visible replay option.
-- Easy is the default difficulty for every game.
-- Every game provides Home, Pause, Restart, Sound, and Difficulty controls.
+- Difficulty is fixed per game so the player does not need to choose settings.
+- Every game provides Home and Sound during play.
+- Finished games provide only Home and Restart.
 - Audio is supplementary. All feedback must also be visible.
-

@@ -11,14 +11,15 @@
 
 - **Domain models** contain rules, state, physics, and AI. They do not draw pixels.
 - **Scenes** translate mouse events into domain operations and draw the current state.
-- **Shared UI** provides buttons, headers, difficulty selection, pause, and sound controls.
+- **Shared UI** provides large Home, Sound, and result-action buttons.
 - **Application services** own settings, scores, the game registry, and scene navigation.
 
 ## Object-oriented design
 
 `Scene` is the only major inheritance hierarchy. Each scene implements the same event,
 update, and draw lifecycle. Game models use composition: a game owns a board, scheduler,
-physics model, or AI strategy. Difficulty swaps strategy objects without changing UI code.
+physics model, or AI strategy. Difficulty remains available in the models for learning and
+tests, while player-facing scenes choose one fixed difficulty per game.
 
 ## Coordinate system
 
@@ -32,4 +33,3 @@ logical coordinates before scenes receive them.
 - `SceneStack` owns the current navigation history.
 - Each game scene owns exactly one game model.
 - `SettingsStore` owns JSON persistence under `%LOCALAPPDATA%\GamesForGrandpa`.
-
