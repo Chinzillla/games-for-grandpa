@@ -4,7 +4,7 @@ import pygame
 
 from games_for_grandpa import theme
 from games_for_grandpa.core import AppController, GameDefinition, Scene
-from games_for_grandpa.ui import Button, GameToolbar
+from games_for_grandpa.ui import Button
 
 
 class HomeScene(Scene):
@@ -110,51 +110,4 @@ class HomeScene(Scene):
             30,
             theme.MUTED_TEXT,
             (640, 668),
-        )
-
-
-class ComingSoonScene(Scene):
-    def __init__(
-        self,
-        controller: AppController,
-        game_id: str,
-        title: str,
-    ) -> None:
-        self.controller = controller
-        self.game_id = game_id
-        self.title = title
-        self.paused = False
-        self.toolbar = GameToolbar(
-            controller,
-            game_id,
-            on_pause=self._toggle_pause,
-            on_restart=self._restart,
-            on_difficulty=self._restart,
-            is_paused=lambda: self.paused,
-        )
-
-    def _toggle_pause(self) -> None:
-        self.paused = not self.paused
-
-    def _restart(self) -> None:
-        self.paused = False
-
-    def handle_event(self, event: pygame.event.Event) -> None:
-        self.toolbar.handle_event(event)
-
-    def update(self, dt: float) -> None:
-        del dt
-
-    def draw(self, surface: pygame.Surface) -> None:
-        surface.fill(theme.BACKGROUND)
-        self.toolbar.draw(surface)
-        theme.draw_text(surface, self.title, 64, theme.TEXT, (640, 270), bold=True)
-        message = "Paused" if self.paused else "This game is the next lesson."
-        theme.draw_text(surface, message, 40, theme.MUTED_TEXT, (640, 380))
-        theme.draw_text(
-            surface,
-            "Use Home to choose another game.",
-            32,
-            theme.MUTED_TEXT,
-            (640, 455),
         )

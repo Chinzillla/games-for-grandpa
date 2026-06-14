@@ -45,3 +45,4 @@ Download the portable ZIP from GitHub Releases, extract it, and open
 confirm that you want to run it.
 
 Release maintainers should follow [`docs/RELEASE.md`](docs/RELEASE.md).
+The full acceptance checklist is in [`docs/TESTING.md`](docs/TESTING.md).
