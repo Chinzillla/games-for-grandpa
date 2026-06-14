@@ -129,7 +129,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
 ## Lesson 7: UI Redesign and Duck Hunt
 
-**Goal:** Replace the first prototype visuals with a colorful, simplified game room.
+**Goal:** Replace the first prototype visuals with a colorful, simplified gameroom.
 
 **Concepts:** TrueType font discovery, off-screen scene rendering, velocity, bounded
 history, modal UI state, and backward-compatible IDs.
@@ -204,7 +204,7 @@ detection, finite-state machines, and small pure models.
 
 **Build order:** first add one pure model per game and cover it with focused tests. Then
 register each game in the dictionary registry, add a visual scene, and refresh screenshots.
-Finally, arrange the Game Room as one grid of large enough cards so the player does not need
+Finally, arrange the Gameroom as one grid of large enough cards so the player does not need
 page navigation.
 
 ```powershell
@@ -214,7 +214,7 @@ uv run games-for-grandpa --smoke-test
 uv run python scripts/capture_screenshots.py
 ```
 
-**Expected result:** the Game Room shows all cards on one screen, every card launches by mouse click, and
+**Expected result:** the Gameroom shows all cards on one screen, every card launches by mouse click, and
 each added game has a testable model that can be studied without pygame.
 
 **Checkpoint:** `git checkout lesson-10-expanded-catalog`

@@ -1,3 +1,3 @@
 """Accessible mouse-only games for Windows."""
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"

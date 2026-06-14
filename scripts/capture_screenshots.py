@@ -25,10 +25,8 @@ def main() -> int:
             "space_defense": "space-defense",
             "maze_chase": "maze-chase",
             "whack_a_mole": "whack-a-mole",
-            "target_practice": "target-practice",
             "memory_cards": "memory-cards",
             "jigsaw_puzzle": "jigsaw-puzzle",
-            "fishing_game": "fishing",
         }
         scenes = [("game-room", HomeScene(app, app.registry))]
         scenes.extend(

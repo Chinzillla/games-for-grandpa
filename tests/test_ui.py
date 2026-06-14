@@ -51,10 +51,8 @@ def test_registry_has_stable_ids() -> None:
         "space_defense",
         "maze_chase",
         "whack_a_mole",
-        "target_practice",
         "memory_cards",
         "jigsaw_puzzle",
-        "fishing_game",
     ]
     assert [definition.title for definition in registry.values()] == [
         "Duck Hunt",
@@ -64,10 +62,8 @@ def test_registry_has_stable_ids() -> None:
         "Space Defense",
         "Maze Chase",
         "Whack-a-Mole",
-        "Target Practice",
         "Memory Cards",
         "Jigsaw Puzzle",
-        "Fishing",
     ]
 
 

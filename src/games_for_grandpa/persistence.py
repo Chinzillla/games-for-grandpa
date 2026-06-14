@@ -85,4 +85,3 @@ class JsonDataStore:
             and not isinstance(score, bool)
             and score >= 0
         }
-

@@ -18,17 +18,15 @@ The suite verifies:
 - every Tic Tac Toe winning line and all reachable player paths against Challenge AI;
 - Connect Four legal columns, wins, draws, and computer replies;
 - Pong reflection, prediction, clamping, collision, speed limits, and scoring;
-- Space Defense movement, automatic shots, enemy collision, and loss states;
+- Space Defense movement, automatic shots, enemy collision, enemy bolts, shields, and loss states;
 - Maze Chase pellet collection and BFS enemy pathing;
 - Whack-a-Mole spawn scheduling and click scoring;
-- Target Practice hit testing and moving-target reflection;
-- Memory Cards pair matching;
-- Jigsaw Puzzle swapping and solved detection;
-- Fishing hook collision, reeling tension, break behavior, and catch completion;
+- Memory Cards pair matching and grid-size changes;
+- Jigsaw Puzzle tray shuffling, correct-drop snapping, rejected drops, piece counts, and completion;
 - missing, corrupt, and valid persistence files;
 - mouse-only navigation from Home into a game and back;
 - the minimal Home/Sound HUD and result-screen restart behavior;
-- one-screen Game Room behavior for all eleven game cards and the Exit button;
+- one-screen Gameroom behavior for all nine game cards and the Exit button;
 - rendering every scene for 1280 x 720 and 1920 x 1080 output;
 - headless initialization and drawing of every registered game.
 

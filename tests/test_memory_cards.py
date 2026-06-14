@@ -49,3 +49,16 @@ def test_all_pairs_complete_game() -> None:
         assert model.flip(index + 1)
 
     assert model.state is MemoryState.COMPLETE
+
+
+def test_memory_grid_size_can_change() -> None:
+    model = MemoryCardsModel(rng=random.Random(7), grid_size=(2, 3))
+
+    assert model.card_count == 6
+    assert model.pair_count == 3
+
+    model.reset((4, 4))
+
+    assert model.card_count == 16
+    assert model.pair_count == 8
+    assert len(model.cards) == 16

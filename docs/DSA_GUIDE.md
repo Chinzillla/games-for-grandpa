@@ -18,7 +18,7 @@ is average O(1), and adding a game does not require a large conditional statemen
 
 ### One-screen launcher
 
-The Game Room stores registered games in a list and maps each list index to a grid position.
+The Gameroom stores registered games in a list and maps each list index to a grid position.
 Rendering the launcher is O(n) in the number of games, which is small enough for a single
 screen. The stable game registry remains a dictionary so launching a selected game is still
 average O(1).
@@ -64,10 +64,11 @@ truth for legal columns and AI decisions.
 
 ## Space Defense
 
-Active enemies and bullets are stored in lists because the object counts are intentionally
-small. Each frame updates positions and checks rectangle overlaps. This is O(e * b) for
-enemy and bullet counts, which is acceptable for the fixed wave size and keeps the logic
-easy to read.
+Active enemies, player bullets, enemy bolts, and shields are stored in lists because the
+object counts are intentionally small. Each frame updates positions and checks rectangle
+overlaps. This is O(e * b + s * b) for enemy, shield, and bullet counts, which is acceptable
+for the fixed wave size and keeps the logic easy to read. A dictionary selects the lowest
+living enemy in each column so only front-row ships fire.
 
 ## Maze Chase
 
@@ -79,30 +80,21 @@ of neighbor links.
 ## Whack-a-Mole
 
 The model stores valid holes in a list and keeps recently used holes in a bounded `deque`.
-That prevents repetitive spawns while keeping append and discard operations O(1).
-
-## Target Practice
-
-The moving target uses constant-time vector updates and boundary reflection. Clicks use
-squared-distance hit testing, which avoids square roots and stays O(1) per shot.
+That prevents repetitive spawns while keeping append and discard operations O(1). The latest
+hit hole is stored as a nullable index so the scene can draw dizzy feedback in O(1).
 
 ## Memory Cards
 
-Cards are a list of visual IDs. The visible grid index maps directly to a card in O(1).
-Matching two selected indices compares their visual IDs and either marks them matched or
-turns them back over.
+Cards are a list of visual IDs. The visible grid index maps directly to a card in O(1), and
+row/column arithmetic derives the current grid layout from the selected size. Matching two
+selected indices compares their visual IDs and either marks them matched or turns them back
+over.
 
 ## Jigsaw Puzzle
 
-A permutation list maps each visible slot to the image tile currently placed there. Clicking
-two slots swaps their list entries in O(1). Completion scans the nine positions and checks
-whether the permutation returned to sorted order.
-
-## Fishing
-
-Fishing is a finite-state machine with PLAYING, HOOKED, and COMPLETE states. Rod movement,
-fish movement, line tension, and hook collision all use constant-time arithmetic. Tension is
-visible feedback for the reeling interval rule.
+A shuffled tray list stores unplaced piece IDs. A board-slot list maps each solved slot to
+either `None` or the source piece ID placed there. Correct drops remove a piece from the tray,
+write it into the slot, and scan the board for completion in O(n), where n is at most 25.
 
 ## Persistence
 

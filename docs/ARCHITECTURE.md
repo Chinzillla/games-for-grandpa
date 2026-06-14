@@ -22,7 +22,7 @@ update, and draw lifecycle. Game models use composition: a game owns a board, sc
 physics model, or AI strategy. Difficulty remains available in the models for learning and
 tests, while player-facing scenes choose one fixed difficulty per game.
 
-The Game Room is deliberately a one-screen grid instead of a menu tree. The registry still
+The Gameroom is deliberately a one-screen grid instead of a menu tree. The registry still
 lets code add games without changing launcher control flow, while the player can see every
 available game at once.
 

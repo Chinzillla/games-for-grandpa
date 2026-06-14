@@ -4,7 +4,9 @@ import random
 from dataclasses import dataclass
 from enum import Enum
 
-CARD_COUNT = 12
+DEFAULT_GRID = (3, 4)
+GRID_OPTIONS = ((2, 3), (3, 4), (4, 4))
+CARD_COUNT = DEFAULT_GRID[0] * DEFAULT_GRID[1]
 PAIR_COUNT = CARD_COUNT // 2
 MISMATCH_SECONDS = 0.75
 
@@ -23,8 +25,14 @@ class MemoryCard:
 
 
 class MemoryCardsModel:
-    def __init__(self, *, rng: random.Random | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        rng: random.Random | None = None,
+        grid_size: tuple[int, int] = DEFAULT_GRID,
+    ) -> None:
         self.rng = rng or random.Random()
+        self.rows, self.columns = self._validate_grid(grid_size)
         self.cards: list[MemoryCard] = []
         self.selected: list[int] = []
         self.matches = 0
@@ -32,10 +40,20 @@ class MemoryCardsModel:
         self.state = MemoryState.PLAYING
         self.reset()
 
-    def reset(self) -> None:
-        pair_ids = [pair_id for pair_id in range(PAIR_COUNT) for _ in range(2)]
+    @property
+    def card_count(self) -> int:
+        return self.rows * self.columns
+
+    @property
+    def pair_count(self) -> int:
+        return self.card_count // 2
+
+    def reset(self, grid_size: tuple[int, int] | None = None) -> None:
+        if grid_size is not None:
+            self.rows, self.columns = self._validate_grid(grid_size)
+        pair_ids = [pair_id for pair_id in range(self.pair_count) for _ in range(2)]
         self.rng.shuffle(pair_ids)
-        # DSA: A list gives O(1) card lookup by visible index.
+        # DSA: A list gives O(1) card lookup by visible index for any selected grid size.
         self.cards = [MemoryCard(pair_id) for pair_id in pair_ids]
         self.selected = []
         self.matches = 0
@@ -68,9 +86,18 @@ class MemoryCardsModel:
                 second.matched = True
                 self.selected.clear()
                 self.matches += 1
-                if self.matches == PAIR_COUNT:
+                if self.matches == self.pair_count:
                     self.state = MemoryState.COMPLETE
             else:
                 self.state = MemoryState.SHOWING_MISMATCH
                 self.timer = MISMATCH_SECONDS
         return True
+
+    @staticmethod
+    def _validate_grid(grid_size: tuple[int, int]) -> tuple[int, int]:
+        if grid_size not in GRID_OPTIONS:
+            raise ValueError(f"unsupported memory grid: {grid_size}")
+        rows, columns = grid_size
+        if (rows * columns) % 2 != 0:
+            raise ValueError("memory card grid must contain an even number of cards")
+        return rows, columns

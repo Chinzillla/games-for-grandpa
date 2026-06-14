@@ -30,3 +30,16 @@ def test_wrong_hole_does_not_score() -> None:
 
     assert not model.whack(wrong_hole)
     assert model.score == 0
+
+
+def test_successful_whack_records_hit_feedback() -> None:
+    model = WhackAMoleModel(rng=random.Random(4))
+    hit_hole = model.active_hole
+
+    assert model.whack(hit_hole)
+    assert model.hit_hole == hit_hole
+    assert model.hit_timer > 0
+
+    model.update(1.0)
+
+    assert model.hit_hole is None

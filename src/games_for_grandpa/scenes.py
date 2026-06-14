@@ -68,8 +68,7 @@ class HomeScene(Scene):
             for index, definition in enumerate(registry.values())
         ]
         self.previews = {
-            definition.game_id: self._render_preview(definition)
-            for definition in registry.values()
+            definition.game_id: self._render_preview(definition) for definition in registry.values()
         }
 
     @staticmethod
@@ -110,7 +109,7 @@ class HomeScene(Scene):
     def _draw_header(self, surface: pygame.Surface) -> None:
         theme.draw_left_text(
             surface,
-            "Game Room",
+            "Gameroom",
             50,
             theme.INK,
             (48, 34),

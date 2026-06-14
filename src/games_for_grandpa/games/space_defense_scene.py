@@ -7,7 +7,12 @@ import pygame
 
 from games_for_grandpa import theme
 from games_for_grandpa.core import AppController, Scene
-from games_for_grandpa.games.space_defense import ENEMY_COUNT, SpaceDefenseModel, SpaceState
+from games_for_grandpa.games.space_defense import (
+    ENEMY_COUNT,
+    PLAYER_LIVES,
+    SpaceDefenseModel,
+    SpaceState,
+)
 from games_for_grandpa.ui import GameHud, ResultActions
 
 
@@ -48,6 +53,7 @@ class SpaceDefenseScene(Scene):
 
     def update(self, dt: float) -> None:
         previous_score = self.model.score
+        previous_lives = self.model.lives
         alive_before = {index for index, enemy in enumerate(self.model.enemies) if enemy.alive}
         self.elapsed += dt
         self.model.update(dt)
@@ -60,6 +66,8 @@ class SpaceDefenseScene(Scene):
         self.explosions = [explosion for explosion in self.explosions if explosion.timer > 0]
         if self.model.score > previous_score:
             self.controller.play_sound("success")
+        if self.model.lives < previous_lives:
+            self.controller.play_sound("point")
         if self.model.state is SpaceState.COMPLETE and not self.finished_recorded:
             self.finished_recorded = True
             self.controller.record_score(self.GAME_ID, self.model.score)
@@ -76,6 +84,15 @@ class SpaceDefenseScene(Scene):
                 pygame.Rect(bullet.x - 4, bullet.y - 18, 8, 24),
                 border_radius=4,
             )
+        for bolt in self.model.enemy_bolts:
+            pygame.draw.rect(
+                surface,
+                theme.CORAL,
+                pygame.Rect(bolt.x - 5, bolt.y - 4, 10, 28),
+                border_radius=5,
+            )
+        for shield in self.model.shields:
+            self._draw_shield(surface, shield.x, shield.y, shield.health)
         for enemy in self.model.enemies:
             if enemy.alive:
                 bob = round(math.sin(self.elapsed * 5.0 + enemy.x * 0.03) * 6)
@@ -97,16 +114,31 @@ class SpaceDefenseScene(Scene):
             pygame.draw.circle(surface, pygame.Color("#E0F2FE"), (x, y), 2)
 
     def _draw_score(self, surface: pygame.Surface) -> None:
-        badge = pygame.Rect(500, 24, 280, 58)
+        badge = pygame.Rect(425, 24, 430, 58)
         pygame.draw.rect(surface, theme.WHITE, badge, border_radius=29)
         theme.draw_text(
             surface,
-            f"Ships  {self.model.score} / {ENEMY_COUNT}",
+            f"Ships  {self.model.score} / {ENEMY_COUNT}    Lives  {self.model.lives}",
             27,
             theme.INK,
             badge.center,
             bold=True,
         )
+
+    @staticmethod
+    def _draw_shield(surface: pygame.Surface, x: float, y: float, health: int) -> None:
+        width = 110
+        height = 48
+        rect = pygame.Rect(round(x - width / 2), round(y - height / 2), width, height)
+        color = pygame.Color("#22C55E") if health >= 4 else pygame.Color("#FBBF24")
+        if health <= 2:
+            color = pygame.Color("#F97316")
+        pygame.draw.rect(surface, color, rect, border_radius=14)
+        pygame.draw.rect(surface, pygame.Color("#0F172A"), rect.inflate(-44, -14), border_radius=8)
+        for index in range(5 - health):
+            chip_x = rect.x + 12 + index * 18
+            pygame.draw.circle(surface, pygame.Color("#0F172A"), (chip_x, rect.y + 12), 8)
+        pygame.draw.rect(surface, theme.WHITE, rect, width=3, border_radius=14)
 
     @staticmethod
     def _draw_enemy(surface: pygame.Surface, x: int, y: int, kind: int) -> None:
@@ -168,6 +200,9 @@ class SpaceDefenseScene(Scene):
         points = [(x, 610), (x - 46, 675), (x + 46, 675)]
         pygame.draw.polygon(surface, theme.CORAL, points)
         pygame.draw.polygon(surface, theme.WHITE, [(x, 625), (x - 16, 660), (x + 16, 660)])
+        for index in range(PLAYER_LIVES):
+            color = theme.YELLOW if index < self.model.lives else pygame.Color("#475569")
+            pygame.draw.circle(surface, color, (1090 + index * 38, 98), 13)
 
     def _draw_result(self, surface: pygame.Surface) -> None:
         panel = pygame.Rect(330, 210, 620, 300)

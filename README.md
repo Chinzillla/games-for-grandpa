@@ -5,7 +5,7 @@ An accessible, mouse-only collection of original desktop games written in Python
 The project is also a sequential learning portfolio for object-oriented programming,
 data structures, algorithms, testing, packaging, and release automation.
 
-![Games for Grandpa game room](docs/images/game-room.png)
+![Games for Grandpa gameroom](docs/images/game-room.png)
 
 ## Included games
 
@@ -13,13 +13,11 @@ data structures, algorithms, testing, packaging, and release automation.
 - **Tic Tac Toe:** play against medium minimax AI.
 - **Connect Four:** drop pieces into a column against depth-limited AI.
 - **Pong:** move one paddle with the mouse against easy speed-limited AI.
-- **Space Defense:** move horizontally while automatic shots clear a simple invader wave.
+- **Space Defense:** move horizontally while automatic shots clear varied ships, shields block fire, and enemy bolts add pressure.
 - **Maze Chase:** click a neighboring path or destination and collect the dots.
-- **Whack-a-Mole:** click the visible mole before it moves.
-- **Target Practice:** shoot a slow duck-shaped target moving across a range.
-- **Memory Cards:** flip two simple visual cards and find every matching pair.
-- **Jigsaw Puzzle:** swap 3 x 3 pieces, with an optional photo picker.
-- **Fishing:** move the rod, lower the hook, then reel gently without breaking the line.
+- **Whack-a-Mole:** hit the visible mole with a mallet and watch for dizzy feedback.
+- **Memory Cards:** match picture cards and choose a larger grid from the side panel.
+- **Jigsaw Puzzle:** drag shuffled pieces from the tray onto the picture board, with an optional photo picker.
 
 Artwork is original, using code-drawn UI plus generated transparent sprites. The app does
 not use copied Google Images or commercial game assets. This project is not affiliated with

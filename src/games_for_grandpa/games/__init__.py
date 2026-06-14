@@ -3,13 +3,11 @@ from __future__ import annotations
 from games_for_grandpa.core import Difficulty, GameDefinition
 from games_for_grandpa.games.connect_four_scene import ConnectFourScene
 from games_for_grandpa.games.duck_hunt_scene import DuckHuntScene
-from games_for_grandpa.games.fishing_game_scene import FishingGameScene
 from games_for_grandpa.games.jigsaw_puzzle_scene import JigsawPuzzleScene
 from games_for_grandpa.games.maze_chase_scene import MazeChaseScene
 from games_for_grandpa.games.memory_cards_scene import MemoryCardsScene
 from games_for_grandpa.games.paddle_rally_scene import PaddleRallyScene
 from games_for_grandpa.games.space_defense_scene import SpaceDefenseScene
-from games_for_grandpa.games.target_practice_scene import TargetPracticeScene
 from games_for_grandpa.games.three_in_row_scene import ThreeInRowScene
 from games_for_grandpa.games.whack_a_mole_scene import WhackAMoleScene
 
@@ -66,13 +64,6 @@ def build_game_registry() -> dict[str, GameDefinition]:
             difficulties=(Difficulty.EASY,),
         ),
         GameDefinition(
-            game_id="target_practice",
-            title="Target Practice",
-            description="",
-            scene_factory=TargetPracticeScene,
-            difficulties=(Difficulty.EASY,),
-        ),
-        GameDefinition(
             game_id="memory_cards",
             title="Memory Cards",
             description="",
@@ -84,13 +75,6 @@ def build_game_registry() -> dict[str, GameDefinition]:
             title="Jigsaw Puzzle",
             description="",
             scene_factory=JigsawPuzzleScene,
-            difficulties=(Difficulty.EASY,),
-        ),
-        GameDefinition(
-            game_id="fishing_game",
-            title="Fishing",
-            description="",
-            scene_factory=FishingGameScene,
             difficulties=(Difficulty.EASY,),
         ),
     )
