@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pygame
 
+from games_for_grandpa import theme
 from games_for_grandpa.audio import SoundBank
 from games_for_grandpa.core import (
     LOGICAL_SIZE,
@@ -78,6 +79,7 @@ class App:
 
     @staticmethod
     def shutdown() -> None:
+        theme.font.cache_clear()
         pygame.quit()
 
     def _logical_event(

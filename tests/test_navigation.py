@@ -4,7 +4,7 @@ import pygame
 
 from games_for_grandpa.app import App
 from games_for_grandpa.core import Viewport
-from games_for_grandpa.games.target_tap_scene import TargetTapScene
+from games_for_grandpa.games.duck_hunt_scene import DuckHuntScene
 from games_for_grandpa.scenes import HomeScene
 
 
@@ -14,9 +14,9 @@ def test_player_can_open_game_and_return_home_using_mouse_only() -> None:
         assert isinstance(app.scenes.active, HomeScene)
 
         app.scenes.active.handle_event(
-            pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(260, 548))
+            pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(220, 300))
         )
-        assert isinstance(app.scenes.active, TargetTapScene)
+        assert isinstance(app.scenes.active, DuckHuntScene)
 
         app.scenes.active.handle_event(
             pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(80, 50))
@@ -43,4 +43,3 @@ def test_every_scene_renders_at_720p_and_1080p() -> None:
                 assert scaled.get_size() == window_size
     finally:
         app.shutdown()
-

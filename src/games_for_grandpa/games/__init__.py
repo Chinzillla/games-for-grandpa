@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from games_for_grandpa.core import GameDefinition
+from games_for_grandpa.games.duck_hunt_scene import DuckHuntScene
 from games_for_grandpa.games.paddle_rally_scene import PaddleRallyScene
-from games_for_grandpa.games.target_tap_scene import TargetTapScene
 from games_for_grandpa.games.three_in_row_scene import ThreeInRowScene
 
 
@@ -10,20 +10,20 @@ def build_game_registry() -> dict[str, GameDefinition]:
     definitions = (
         GameDefinition(
             game_id="target_tap",
-            title="Target Tap",
-            description="Click 10 large targets.\nMissing never removes points.",
-            scene_factory=TargetTapScene,
+            title="Duck Hunt",
+            description="",
+            scene_factory=DuckHuntScene,
         ),
         GameDefinition(
             game_id="three_in_row",
-            title="Three in a Row",
-            description="Place three marks in a row.\nPlay a friendly computer.",
+            title="Tic Tac Toe",
+            description="",
             scene_factory=ThreeInRowScene,
         ),
         GameDefinition(
             game_id="paddle_rally",
-            title="Paddle Rally",
-            description="Move the paddle with the mouse.\nKeep the ball in play.",
+            title="Pong",
+            description="",
             scene_factory=PaddleRallyScene,
         ),
     )

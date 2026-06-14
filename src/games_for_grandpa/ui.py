@@ -15,6 +15,7 @@ class Button:
     label: str
     on_click: Callable[[], None]
     primary: bool = False
+    accent: pygame.Color | None = None
     enabled: bool = True
     hovered: bool = False
 
@@ -33,52 +34,97 @@ class Button:
 
     def draw(self, surface: pygame.Surface) -> None:
         if not self.enabled:
-            color = theme.PANEL_LIGHT
+            color = theme.SKY_LIGHT
             text_color = theme.MUTED_TEXT
         elif self.hovered:
-            color = theme.PRIMARY_HOVER if self.primary else theme.PANEL_LIGHT
-            text_color = theme.BLACK if self.primary else theme.TEXT
+            color = (
+                theme.PRIMARY_HOVER
+                if self.primary
+                else self.accent or pygame.Color("#EEF5FF")
+            )
+            text_color = theme.BLACK if self.primary else theme.INK
         else:
-            color = theme.PRIMARY if self.primary else theme.PANEL
-            text_color = theme.BLACK if self.primary else theme.TEXT
+            color = theme.PRIMARY if self.primary else self.accent or theme.WHITE
+            text_color = theme.BLACK if self.primary else theme.INK
+        shadow_rect = self.rect.move(0, 4)
+        pygame.draw.rect(surface, theme.SHADOW, shadow_rect, border_radius=16)
         pygame.draw.rect(surface, color, self.rect, border_radius=14)
-        pygame.draw.rect(surface, theme.MUTED_TEXT, self.rect, width=2, border_radius=14)
         theme.draw_text(
             surface,
             self.label,
-            30,
+            25,
             text_color,
             self.rect.center,
             bold=True,
         )
 
 
-class GameToolbar:
+class GameHud:
     def __init__(
         self,
         controller: AppController,
         game_id: str,
         *,
-        on_pause: Callable[[], None],
         on_restart: Callable[[], None],
         on_difficulty: Callable[[], None],
-        is_paused: Callable[[], bool],
     ) -> None:
         self.controller = controller
         self.game_id = game_id
+        self.on_restart = on_restart
         self.on_difficulty = on_difficulty
-        self.is_paused = is_paused
-        self.buttons = [
-            Button(pygame.Rect(20, 18, 150, 62), "Home", controller.go_home),
-            Button(pygame.Rect(184, 18, 150, 62), "Pause", on_pause),
-            Button(pygame.Rect(348, 18, 170, 62), "Restart", on_restart),
-            Button(pygame.Rect(532, 18, 190, 62), "Sound: On", self._toggle_sound),
+        self.menu_open = False
+        self.home_button = Button(
+            pygame.Rect(28, 24, 116, 54),
+            "Home",
+            controller.go_home,
+        )
+        self.menu_button = Button(
+            pygame.Rect(1136, 24, 116, 54),
+            "Menu",
+            self._open_menu,
+        )
+        self.menu_buttons = [
             Button(
-                pygame.Rect(736, 18, 300, 62),
-                "Difficulty: Easy",
+                pygame.Rect(440, 245, 400, 62),
+                "Continue",
+                self._close_menu,
+                accent=theme.GREEN,
+            ),
+            Button(
+                pygame.Rect(440, 325, 400, 62),
+                "Restart",
+                self._restart,
+                accent=theme.YELLOW,
+            ),
+            Button(
+                pygame.Rect(440, 405, 400, 62),
+                "Difficulty  Easy",
                 self._cycle_difficulty,
+                accent=theme.SKY,
+            ),
+            Button(
+                pygame.Rect(440, 485, 400, 62),
+                "Sound  On",
+                self._toggle_sound,
+                accent=pygame.Color("#EFEAFF"),
             ),
         ]
+
+    @property
+    def paused(self) -> bool:
+        return self.menu_open
+
+    def _open_menu(self) -> None:
+        self.menu_open = True
+        self.controller.play_sound("click")
+
+    def _close_menu(self) -> None:
+        self.menu_open = False
+        self.controller.play_sound("click")
+
+    def _restart(self) -> None:
+        self.menu_open = False
+        self.on_restart()
 
     def _toggle_sound(self) -> None:
         self.controller.settings.sound_enabled = not self.controller.settings.sound_enabled
@@ -93,15 +139,25 @@ class GameToolbar:
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> bool:
-        return any(button.handle_event(event) for button in self.buttons)
+        if self.menu_open:
+            return any(button.handle_event(event) for button in self.menu_buttons)
+        return self.home_button.handle_event(event) or self.menu_button.handle_event(event)
 
     def draw(self, surface: pygame.Surface) -> None:
-        pygame.draw.rect(surface, theme.PANEL, pygame.Rect(0, 0, 1280, 98))
-        self.buttons[1].label = "Continue" if self.is_paused() else "Pause"
-        sound = "On" if self.controller.settings.sound_enabled else "Off"
-        self.buttons[3].label = f"Sound: {sound}"
-        difficulty = self.controller.settings.difficulty_for(self.game_id)
-        self.buttons[4].label = f"Difficulty: {difficulty.value}"
-        for button in self.buttons:
-            button.draw(surface)
+        self.home_button.draw(surface)
+        self.menu_button.draw(surface)
+        if not self.menu_open:
+            return
 
+        overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+        overlay.fill((23, 33, 58, 170))
+        surface.blit(overlay, (0, 0))
+        panel = pygame.Rect(390, 135, 500, 485)
+        theme.draw_card(surface, panel, color=theme.CREAM, shadow_offset=10, radius=32)
+        theme.draw_text(surface, "Game Menu", 44, theme.INK, (640, 190), bold=True)
+        sound = "On" if self.controller.settings.sound_enabled else "Off"
+        difficulty = self.controller.settings.difficulty_for(self.game_id)
+        self.menu_buttons[2].label = f"Difficulty  {difficulty.value}"
+        self.menu_buttons[3].label = f"Sound  {sound}"
+        for button in self.menu_buttons:
+            button.draw(surface)

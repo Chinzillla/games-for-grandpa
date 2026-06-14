@@ -9,10 +9,11 @@ from games_for_grandpa.games.three_in_row import (
     ThreeInRowModel,
     ThreeInRowState,
 )
-from games_for_grandpa.ui import GameToolbar
+from games_for_grandpa.ui import GameHud
 
-BOARD_RECT = pygame.Rect(120, 170, 510, 510)
-CELL_SIZE = BOARD_RECT.width // 3
+BOARD_RECT = pygame.Rect(325, 125, 630, 570)
+CELL_WIDTH = BOARD_RECT.width // 3
+CELL_HEIGHT = BOARD_RECT.height // 3
 
 
 class ThreeInRowScene(Scene):
@@ -20,31 +21,23 @@ class ThreeInRowScene(Scene):
 
     def __init__(self, controller: AppController) -> None:
         self.controller = controller
-        self.paused = False
         self.model = ThreeInRowModel(controller.settings.difficulty_for(self.GAME_ID))
-        self.toolbar = GameToolbar(
+        self.hud = GameHud(
             controller,
             self.GAME_ID,
-            on_pause=self._toggle_pause,
             on_restart=self._restart,
             on_difficulty=self._restart,
-            is_paused=lambda: self.paused,
         )
 
-    def _toggle_pause(self) -> None:
-        self.paused = not self.paused
-        self.controller.play_sound("click")
-
     def _restart(self) -> None:
-        self.paused = False
         self.model.reset(self.controller.settings.difficulty_for(self.GAME_ID))
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        if self.toolbar.handle_event(event):
+        if self.hud.handle_event(event):
             return
         if (
-            self.paused
+            self.hud.paused
             or self.model.state is not ThreeInRowState.PLAYING
             or event.type != pygame.MOUSEBUTTONDOWN
             or event.button != 1
@@ -52,8 +45,8 @@ class ThreeInRowScene(Scene):
         ):
             return
 
-        column = (event.pos[0] - BOARD_RECT.x) // CELL_SIZE
-        row = (event.pos[1] - BOARD_RECT.y) // CELL_SIZE
+        column = (event.pos[0] - BOARD_RECT.x) // CELL_WIDTH
+        row = (event.pos[1] - BOARD_RECT.y) // CELL_HEIGHT
         index = row * 3 + column
         if self.model.player_move(index):
             if self.model.state is not ThreeInRowState.PLAYING:
@@ -66,137 +59,90 @@ class ThreeInRowScene(Scene):
         del dt
 
     def draw(self, surface: pygame.Surface) -> None:
-        surface.fill(theme.BACKGROUND)
-        self.toolbar.draw(surface)
+        theme.vertical_gradient(surface, pygame.Color("#806CE8"), pygame.Color("#BFAFF8"))
+        self._draw_title(surface)
         self._draw_board(surface)
-        self._draw_instructions(surface)
-        if self.paused:
-            self._draw_paused(surface)
+        if self.model.state is not ThreeInRowState.PLAYING:
+            self._draw_result(surface)
+        self.hud.draw(surface)
+
+    def _draw_title(self, surface: pygame.Surface) -> None:
+        badge = pygame.Rect(505, 28, 270, 58)
+        pygame.draw.rect(surface, theme.WHITE, badge, border_radius=29)
+        message = {
+            ThreeInRowState.PLAYING: "Your turn",
+            ThreeInRowState.PLAYER_WON: "You won!",
+            ThreeInRowState.COMPUTER_WON: "Good game!",
+            ThreeInRowState.DRAW: "It's a draw!",
+        }[self.model.state]
+        theme.draw_text(surface, message, 28, theme.INK, badge.center, bold=True)
 
     def _draw_board(self, surface: pygame.Surface) -> None:
-        pygame.draw.rect(surface, theme.PANEL, BOARD_RECT, border_radius=18)
+        theme.draw_card(surface, BOARD_RECT, color=theme.CREAM, shadow_offset=10, radius=34)
         for offset in (1, 2):
-            x = BOARD_RECT.x + offset * CELL_SIZE
-            y = BOARD_RECT.y + offset * CELL_SIZE
+            x = BOARD_RECT.x + offset * CELL_WIDTH
+            y = BOARD_RECT.y + offset * CELL_HEIGHT
             pygame.draw.line(
                 surface,
-                theme.MUTED_TEXT,
-                (x, BOARD_RECT.y),
-                (x, BOARD_RECT.bottom),
-                width=6,
+                pygame.Color("#CFD8F0"),
+                (x, BOARD_RECT.y + 20),
+                (x, BOARD_RECT.bottom - 20),
+                width=7,
             )
             pygame.draw.line(
                 surface,
-                theme.MUTED_TEXT,
-                (BOARD_RECT.x, y),
-                (BOARD_RECT.right, y),
-                width=6,
+                pygame.Color("#CFD8F0"),
+                (BOARD_RECT.x + 20, y),
+                (BOARD_RECT.right - 20, y),
+                width=7,
             )
 
         for index, mark in enumerate(self.model.board.cells):
             row, column = divmod(index, 3)
             cell = pygame.Rect(
-                BOARD_RECT.x + column * CELL_SIZE,
-                BOARD_RECT.y + row * CELL_SIZE,
-                CELL_SIZE,
-                CELL_SIZE,
+                BOARD_RECT.x + column * CELL_WIDTH,
+                BOARD_RECT.y + row * CELL_HEIGHT,
+                CELL_WIDTH,
+                CELL_HEIGHT,
             )
             if mark is Mark.PLAYER:
-                margin = 42
-                pygame.draw.line(
-                    surface,
-                    theme.PRIMARY,
-                    (cell.left + margin, cell.top + margin),
-                    (cell.right - margin, cell.bottom - margin),
-                    width=14,
-                )
-                pygame.draw.line(
-                    surface,
-                    theme.PRIMARY,
-                    (cell.right - margin, cell.top + margin),
-                    (cell.left + margin, cell.bottom - margin),
-                    width=14,
-                )
+                self._draw_x(surface, cell)
             elif mark is Mark.COMPUTER:
-                pygame.draw.circle(
-                    surface,
-                    theme.ACCENT,
-                    cell.center,
-                    56,
-                    width=14,
-                )
+                pygame.draw.circle(surface, theme.BLUE, cell.center, 62, width=17)
 
-    def _draw_instructions(self, surface: pygame.Surface) -> None:
-        panel = pygame.Rect(700, 170, 500, 510)
-        pygame.draw.rect(surface, theme.PANEL, panel, border_radius=22)
-        pygame.draw.rect(surface, theme.ACCENT, panel, width=4, border_radius=22)
+    @staticmethod
+    def _draw_x(surface: pygame.Surface, cell: pygame.Rect) -> None:
+        margin_x = 62
+        margin_y = 52
+        pygame.draw.line(
+            surface,
+            theme.CORAL,
+            (cell.left + margin_x, cell.top + margin_y),
+            (cell.right - margin_x, cell.bottom - margin_y),
+            width=18,
+        )
+        pygame.draw.line(
+            surface,
+            theme.CORAL,
+            (cell.right - margin_x, cell.top + margin_y),
+            (cell.left + margin_x, cell.bottom - margin_y),
+            width=18,
+        )
+
+    def _draw_result(self, surface: pygame.Surface) -> None:
+        panel = pygame.Rect(420, 245, 440, 220)
+        theme.draw_card(surface, panel, color=theme.WHITE, shadow_offset=8, radius=30)
+        message = {
+            ThreeInRowState.PLAYER_WON: "You won!",
+            ThreeInRowState.COMPUTER_WON: "Nice try!",
+            ThreeInRowState.DRAW: "A draw!",
+        }[self.model.state]
+        theme.draw_text(surface, message, 48, theme.INK, (640, 315), bold=True)
         theme.draw_text(
             surface,
-            "Three in a Row",
-            52,
-            theme.TEXT,
-            (panel.centerx, 235),
+            "Open Menu to play again.",
+            24,
+            theme.BLUE_DARK,
+            (640, 395),
             bold=True,
-        )
-        theme.draw_text(
-            surface,
-            "Click an empty square.",
-            34,
-            theme.MUTED_TEXT,
-            (panel.centerx, 315),
-        )
-        theme.draw_text(
-            surface,
-            "You are the gold X.",
-            34,
-            theme.PRIMARY,
-            (panel.centerx, 365),
-        )
-        theme.draw_text(
-            surface,
-            "Computer is the blue O.",
-            34,
-            theme.ACCENT,
-            (panel.centerx, 415),
-        )
-
-        messages = {
-            ThreeInRowState.PLAYING: "Your turn",
-            ThreeInRowState.PLAYER_WON: "You made three!",
-            ThreeInRowState.COMPUTER_WON: "The computer made three.",
-            ThreeInRowState.DRAW: "A friendly draw!",
-        }
-        color = (
-            theme.SUCCESS
-            if self.model.state in {ThreeInRowState.PLAYER_WON, ThreeInRowState.DRAW}
-            else theme.TEXT
-        )
-        theme.draw_text(
-            surface,
-            messages[self.model.state],
-            44,
-            color,
-            (panel.centerx, 525),
-            bold=True,
-        )
-        if self.model.state is not ThreeInRowState.PLAYING:
-            theme.draw_text(
-                surface,
-                "Choose Restart to play again.",
-                30,
-                theme.MUTED_TEXT,
-                (panel.centerx, 600),
-            )
-
-    def _draw_paused(self, surface: pygame.Surface) -> None:
-        overlay = pygame.Surface((1280, 622), pygame.SRCALPHA)
-        overlay.fill((16, 42, 67, 235))
-        surface.blit(overlay, (0, 98))
-        theme.draw_text(surface, "Paused", 76, theme.TEXT, (640, 350), bold=True)
-        theme.draw_text(
-            surface,
-            "Choose Continue when you are ready.",
-            38,
-            theme.MUTED_TEXT,
-            (640, 435),
         )

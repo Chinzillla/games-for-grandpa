@@ -9,13 +9,12 @@ from games_for_grandpa.games.paddle_rally import (
     PLAY_LEFT,
     PLAY_RIGHT,
     PLAY_TOP,
-    WINNING_SCORE,
     Paddle,
     PaddleRallyModel,
     RallyEvent,
     RallyState,
 )
-from games_for_grandpa.ui import GameToolbar
+from games_for_grandpa.ui import GameHud
 
 
 class PaddleRallyScene(Scene):
@@ -23,36 +22,28 @@ class PaddleRallyScene(Scene):
 
     def __init__(self, controller: AppController) -> None:
         self.controller = controller
-        self.paused = False
         self.model = PaddleRallyModel(controller.settings.difficulty_for(self.GAME_ID))
-        self.toolbar = GameToolbar(
+        self.hud = GameHud(
             controller,
             self.GAME_ID,
-            on_pause=self._toggle_pause,
             on_restart=self._restart,
             on_difficulty=self._restart,
-            is_paused=lambda: self.paused,
         )
 
-    def _toggle_pause(self) -> None:
-        self.paused = not self.paused
-        self.controller.play_sound("click")
-
     def _restart(self) -> None:
-        self.paused = False
         self.model.reset(self.controller.settings.difficulty_for(self.GAME_ID))
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        if self.toolbar.handle_event(event):
+        if self.hud.handle_event(event):
             return
-        if self.paused or self.model.state is not RallyState.PLAYING:
+        if self.hud.paused or self.model.state is not RallyState.PLAYING:
             return
         if event.type in {pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN}:
             self.model.move_player(event.pos[1])
 
     def update(self, dt: float) -> None:
-        if self.paused:
+        if self.hud.paused:
             return
         events = self.model.update(dt)
         if RallyEvent.COMPLETE in events:
@@ -64,13 +55,11 @@ class PaddleRallyScene(Scene):
             self.controller.play_sound("success")
 
     def draw(self, surface: pygame.Surface) -> None:
-        surface.fill(theme.BACKGROUND)
-        self.toolbar.draw(surface)
+        theme.vertical_gradient(surface, theme.INK, pygame.Color("#283A67"))
         self._draw_play_area(surface)
         if self.model.state is not RallyState.PLAYING:
             self._draw_complete(surface)
-        if self.paused:
-            self._draw_paused(surface)
+        self.hud.draw(surface)
 
     def _draw_play_area(self, surface: pygame.Surface) -> None:
         play_rect = pygame.Rect(
@@ -79,49 +68,34 @@ class PaddleRallyScene(Scene):
             round(PLAY_RIGHT - PLAY_LEFT),
             round(PLAY_BOTTOM - PLAY_TOP),
         )
-        pygame.draw.rect(surface, theme.PANEL, play_rect, border_radius=18)
-        pygame.draw.rect(surface, theme.MUTED_TEXT, play_rect, width=3, border_radius=18)
-        for y in range(round(PLAY_TOP) + 16, round(PLAY_BOTTOM), 38):
-            pygame.draw.line(surface, theme.PANEL_LIGHT, (640, y), (640, y + 20), width=5)
+        pygame.draw.rect(surface, pygame.Color("#15213C"), play_rect, border_radius=24)
+        pygame.draw.rect(surface, pygame.Color("#7D8DB5"), play_rect, width=3, border_radius=24)
+        for y in range(round(PLAY_TOP) + 15, round(PLAY_BOTTOM), 42):
+            pygame.draw.line(surface, pygame.Color("#51658F"), (640, y), (640, y + 22), width=5)
 
+        score_panel = pygame.Rect(510, 24, 260, 62)
+        pygame.draw.rect(surface, theme.WHITE, score_panel, border_radius=31)
         theme.draw_text(
             surface,
-            str(self.model.player_score),
-            68,
-            theme.PRIMARY,
-            (520, 178),
+            f"{self.model.player_score}   :   {self.model.computer_score}",
+            34,
+            theme.INK,
+            score_panel.center,
             bold=True,
         )
-        theme.draw_text(
-            surface,
-            str(self.model.computer_score),
-            68,
-            theme.ACCENT,
-            (760, 178),
-            bold=True,
-        )
-        theme.draw_text(
-            surface,
-            f"First to {WINNING_SCORE}",
-            28,
-            theme.MUTED_TEXT,
-            (640, 174),
-        )
-
-        self._draw_paddle(surface, self.model.player, theme.PRIMARY)
-        self._draw_paddle(surface, self.model.computer, theme.ACCENT)
+        self._draw_paddle(surface, self.model.player, theme.CORAL)
+        self._draw_paddle(surface, self.model.computer, theme.GREEN)
         pygame.draw.circle(
             surface,
-            theme.TEXT,
+            theme.YELLOW,
             (round(self.model.ball.x), round(self.model.ball.y)),
-            round(self.model.ball.radius),
+            round(self.model.ball.radius + 4),
         )
-        theme.draw_text(
+        pygame.draw.circle(
             surface,
-            "Move the mouse up and down to control the gold paddle.",
-            30,
-            theme.MUTED_TEXT,
-            (640, 115),
+            theme.WHITE,
+            (round(self.model.ball.x - 5), round(self.model.ball.y - 5)),
+            5,
         )
 
     @staticmethod
@@ -136,37 +110,20 @@ class PaddleRallyScene(Scene):
             round(paddle.width),
             round(paddle.height),
         )
-        pygame.draw.rect(surface, color, rect, border_radius=12)
+        shadow = rect.move(5, 7)
+        pygame.draw.rect(surface, theme.SHADOW, shadow, border_radius=14)
+        pygame.draw.rect(surface, color, rect, border_radius=14)
 
     def _draw_complete(self, surface: pygame.Surface) -> None:
-        overlay = pygame.Surface((760, 320), pygame.SRCALPHA)
-        overlay.fill((36, 59, 83, 245))
-        panel = overlay.get_rect(center=(380, 160))
-        pygame.draw.rect(overlay, theme.SUCCESS, panel, width=5, border_radius=26)
-        surface.blit(overlay, (260, 245))
-        message = (
-            "You won the rally!"
-            if self.model.state is RallyState.PLAYER_WON
-            else "Nice rally!"
-        )
-        theme.draw_text(surface, message, 62, theme.TEXT, (640, 350), bold=True)
+        panel = pygame.Rect(350, 255, 580, 230)
+        theme.draw_card(surface, panel, color=theme.CREAM, shadow_offset=10, radius=32)
+        message = "You won!" if self.model.state is RallyState.PLAYER_WON else "Good game!"
+        theme.draw_text(surface, message, 52, theme.INK, (640, 330), bold=True)
         theme.draw_text(
             surface,
-            "Choose Restart to play again.",
-            36,
-            theme.MUTED_TEXT,
-            (640, 445),
-        )
-
-    def _draw_paused(self, surface: pygame.Surface) -> None:
-        overlay = pygame.Surface((1280, 622), pygame.SRCALPHA)
-        overlay.fill((16, 42, 67, 235))
-        surface.blit(overlay, (0, 98))
-        theme.draw_text(surface, "Paused", 76, theme.TEXT, (640, 350), bold=True)
-        theme.draw_text(
-            surface,
-            "Choose Continue when you are ready.",
-            38,
-            theme.MUTED_TEXT,
-            (640, 435),
+            "Open Menu to play again.",
+            25,
+            theme.BLUE_DARK,
+            (640, 410),
+            bold=True,
         )
