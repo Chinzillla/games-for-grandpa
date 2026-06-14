@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from games_for_grandpa.core import AppController, GameDefinition
 from games_for_grandpa.games.target_tap_scene import TargetTapScene
+from games_for_grandpa.games.three_in_row_scene import ThreeInRowScene
 from games_for_grandpa.scenes import ComingSoonScene
 
 
@@ -13,10 +14,11 @@ def build_game_registry() -> dict[str, GameDefinition]:
             description="Click 10 large targets.\nMissing never removes points.",
             scene_factory=TargetTapScene,
         ),
-        _placeholder(
-            "three_in_row",
-            "Three in a Row",
-            "Place three marks in a row.\nPlay a friendly computer.",
+        GameDefinition(
+            game_id="three_in_row",
+            title="Three in a Row",
+            description="Place three marks in a row.\nPlay a friendly computer.",
+            scene_factory=ThreeInRowScene,
         ),
         _placeholder(
             "paddle_rally",
