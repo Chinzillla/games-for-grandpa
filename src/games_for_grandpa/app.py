@@ -76,6 +76,10 @@ class App:
             scene.update(1 / 60)
             scene.draw(self.canvas)
 
+    @staticmethod
+    def shutdown() -> None:
+        pygame.quit()
+
     def _logical_event(
         self, event: pygame.event.Event, viewport: Viewport
     ) -> pygame.event.Event:
@@ -111,7 +115,7 @@ class App:
             if frame_limit is not None and frames >= frame_limit:
                 self.running = False
 
-        pygame.quit()
+        self.shutdown()
         return 0
 
 
