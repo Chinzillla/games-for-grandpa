@@ -73,14 +73,14 @@ class FlightScheduler:
 
 class DuckHuntModel:
     SPEED_BY_DIFFICULTY = {
-        Difficulty.EASY: 190.0,
-        Difficulty.NORMAL: 255.0,
-        Difficulty.CHALLENGE: 330.0,
+        Difficulty.EASY: 170.0,
+        Difficulty.NORMAL: 220.0,
+        Difficulty.CHALLENGE: 275.0,
     }
     HIT_RADIUS_BY_DIFFICULTY = {
-        Difficulty.EASY: 62.0,
-        Difficulty.NORMAL: 54.0,
-        Difficulty.CHALLENGE: 46.0,
+        Difficulty.EASY: 88.0,
+        Difficulty.NORMAL: 78.0,
+        Difficulty.CHALLENGE: 70.0,
     }
 
     def __init__(
@@ -113,6 +113,7 @@ class DuckHuntModel:
                     events.add(DuckHuntEvent.COMPLETE)
                 else:
                     self._spawn_duck()
+                    self.state = DuckHuntState.PLAYING
             return events
         if self.state is not DuckHuntState.PLAYING:
             return events

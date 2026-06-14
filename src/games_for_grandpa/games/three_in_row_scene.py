@@ -24,9 +24,11 @@ class ThreeInRowScene(Scene):
         self.model = ThreeInRowModel(Difficulty.NORMAL)
         self.hud = GameHud(controller)
         self.result_actions = ResultActions(controller, self._restart)
+        self.mark_ages = [1.0] * 9
 
     def _restart(self) -> None:
         self.model.reset(Difficulty.NORMAL)
+        self.mark_ages = [1.0] * 9
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -45,7 +47,13 @@ class ThreeInRowScene(Scene):
         column = (event.pos[0] - BOARD_RECT.x) // CELL_WIDTH
         row = (event.pos[1] - BOARD_RECT.y) // CELL_HEIGHT
         index = row * 3 + column
+        before = list(self.model.board.cells)
         if self.model.player_move(index):
+            for changed_index, (old_mark, new_mark) in enumerate(
+                zip(before, self.model.board.cells, strict=True)
+            ):
+                if old_mark is Mark.EMPTY and new_mark is not Mark.EMPTY:
+                    self.mark_ages[changed_index] = 0.0
             if self.model.state is not ThreeInRowState.PLAYING:
                 score = 1 if self.model.state is ThreeInRowState.PLAYER_WON else 0
                 self.controller.record_score(self.GAME_ID, score)
@@ -53,7 +61,7 @@ class ThreeInRowScene(Scene):
             self.controller.play_sound(sound)
 
     def update(self, dt: float) -> None:
-        del dt
+        self.mark_ages = [min(1.0, age + dt * 4.5) for age in self.mark_ages]
 
     def draw(self, surface: pygame.Surface) -> None:
         theme.vertical_gradient(surface, pygame.Color("#806CE8"), pygame.Color("#BFAFF8"))
@@ -105,14 +113,26 @@ class ThreeInRowScene(Scene):
                 CELL_HEIGHT,
             )
             if mark is Mark.PLAYER:
-                self._draw_x(surface, cell)
+                self._draw_x(surface, cell, self.mark_ages[index])
             elif mark is Mark.COMPUTER:
-                pygame.draw.circle(surface, theme.BLUE, cell.center, 62, width=17)
+                scale = self._pop_scale(self.mark_ages[index])
+                pygame.draw.circle(
+                    surface,
+                    theme.BLUE,
+                    cell.center,
+                    round(62 * scale),
+                    width=max(6, round(17 * scale)),
+                )
 
     @staticmethod
-    def _draw_x(surface: pygame.Surface, cell: pygame.Rect) -> None:
-        margin_x = 62
-        margin_y = 52
+    def _pop_scale(age: float) -> float:
+        return 0.2 + 0.8 * (1 - (1 - min(1.0, age)) ** 3)
+
+    @classmethod
+    def _draw_x(cls, surface: pygame.Surface, cell: pygame.Rect, age: float) -> None:
+        scale = cls._pop_scale(age)
+        margin_x = round(105 - 43 * scale)
+        margin_y = round(95 - 43 * scale)
         pygame.draw.line(
             surface,
             theme.CORAL,
@@ -125,7 +145,7 @@ class ThreeInRowScene(Scene):
             theme.CORAL,
             (cell.right - margin_x, cell.top + margin_y),
             (cell.left + margin_x, cell.bottom - margin_y),
-            width=18,
+            width=max(6, round(18 * scale)),
         )
 
     def _draw_result(self, surface: pygame.Surface) -> None:

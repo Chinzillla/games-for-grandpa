@@ -12,7 +12,7 @@
 - **Domain models** contain rules, state, physics, and AI. They do not draw pixels.
 - **Scenes** translate mouse events into domain operations and draw the current state.
 - **Shared UI** provides large Home, Sound, and result-action buttons.
-- **Application services** own settings, scores, the game registry, paged launcher, and
+- **Application services** own settings, scores, the game registry, one-screen launcher, and
   scene navigation.
 
 ## Object-oriented design
@@ -22,9 +22,9 @@ update, and draw lifecycle. Game models use composition: a game owns a board, sc
 physics model, or AI strategy. Difficulty remains available in the models for learning and
 tests, while player-facing scenes choose one fixed difficulty per game.
 
-The Game Room is deliberately paged instead of scrollable. Three large cards per page keep
-the clickable areas predictable for the intended player, while the registry still lets code
-add games without changing launcher control flow.
+The Game Room is deliberately a one-screen grid instead of a menu tree. The registry still
+lets code add games without changing launcher control flow, while the player can see every
+available game at once.
 
 ## Coordinate system
 

@@ -1,11 +1,21 @@
 from __future__ import annotations
 
+import math
+from dataclasses import dataclass
+
 import pygame
 
 from games_for_grandpa import theme
 from games_for_grandpa.core import AppController, Scene
 from games_for_grandpa.games.space_defense import ENEMY_COUNT, SpaceDefenseModel, SpaceState
 from games_for_grandpa.ui import GameHud, ResultActions
+
+
+@dataclass(slots=True)
+class Explosion:
+    x: float
+    y: float
+    timer: float = 0.35
 
 
 class SpaceDefenseScene(Scene):
@@ -17,10 +27,14 @@ class SpaceDefenseScene(Scene):
         self.hud = GameHud(controller)
         self.result_actions = ResultActions(controller, self._restart)
         self.finished_recorded = False
+        self.elapsed = 0.0
+        self.explosions: list[Explosion] = []
 
     def _restart(self) -> None:
         self.model.reset()
         self.finished_recorded = False
+        self.elapsed = 0.0
+        self.explosions.clear()
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -34,7 +48,16 @@ class SpaceDefenseScene(Scene):
 
     def update(self, dt: float) -> None:
         previous_score = self.model.score
+        alive_before = {index for index, enemy in enumerate(self.model.enemies) if enemy.alive}
+        self.elapsed += dt
         self.model.update(dt)
+        alive_after = {index for index, enemy in enumerate(self.model.enemies) if enemy.alive}
+        for index in alive_before - alive_after:
+            enemy = self.model.enemies[index]
+            self.explosions.append(Explosion(enemy.x, enemy.y))
+        for explosion in self.explosions:
+            explosion.timer -= dt
+        self.explosions = [explosion for explosion in self.explosions if explosion.timer > 0]
         if self.model.score > previous_score:
             self.controller.play_sound("success")
         if self.model.state is SpaceState.COMPLETE and not self.finished_recorded:
@@ -55,7 +78,10 @@ class SpaceDefenseScene(Scene):
             )
         for enemy in self.model.enemies:
             if enemy.alive:
-                self._draw_enemy(surface, round(enemy.x), round(enemy.y))
+                bob = round(math.sin(self.elapsed * 5.0 + enemy.x * 0.03) * 6)
+                self._draw_enemy(surface, round(enemy.x), round(enemy.y + bob), enemy.kind)
+        for explosion in self.explosions:
+            self._draw_explosion(surface, explosion)
         self._draw_ship(surface)
         if self.model.state is not SpaceState.PLAYING:
             self._draw_result(surface)
@@ -83,10 +109,59 @@ class SpaceDefenseScene(Scene):
         )
 
     @staticmethod
-    def _draw_enemy(surface: pygame.Surface, x: int, y: int) -> None:
-        pygame.draw.ellipse(surface, pygame.Color("#7CFF6B"), pygame.Rect(x - 34, y - 22, 68, 44))
-        pygame.draw.circle(surface, theme.BLACK, (x - 15, y - 3), 5)
-        pygame.draw.circle(surface, theme.BLACK, (x + 15, y - 3), 5)
+    def _draw_enemy(surface: pygame.Surface, x: int, y: int, kind: int) -> None:
+        if kind == 0:
+            color = pygame.Color("#A78BFA")
+            pygame.draw.polygon(
+                surface,
+                color,
+                [
+                    (x, y - 28),
+                    (x - 38, y + 12),
+                    (x - 18, y + 28),
+                    (x, y + 12),
+                    (x + 18, y + 28),
+                    (x + 38, y + 12),
+                ],
+            )
+            pygame.draw.circle(surface, theme.WHITE, (x, y), 8)
+        elif kind == 1:
+            color = pygame.Color("#7CFF6B")
+            pygame.draw.ellipse(surface, color, pygame.Rect(x - 38, y - 22, 76, 40))
+            pygame.draw.rect(surface, color, pygame.Rect(x - 24, y + 5, 48, 20), border_radius=8)
+            pygame.draw.circle(surface, theme.BLACK, (x - 15, y - 3), 5)
+            pygame.draw.circle(surface, theme.BLACK, (x + 15, y - 3), 5)
+        else:
+            color = pygame.Color("#67E8F9")
+            pygame.draw.rect(
+                surface,
+                color,
+                pygame.Rect(x - 30, y - 20, 60, 34),
+                border_radius=10,
+            )
+            pygame.draw.polygon(
+                surface,
+                color,
+                [(x - 30, y + 4), (x - 52, y + 24), (x - 18, y + 18)],
+            )
+            pygame.draw.polygon(
+                surface,
+                color,
+                [(x + 30, y + 4), (x + 52, y + 24), (x + 18, y + 18)],
+            )
+            pygame.draw.circle(surface, theme.BLACK, (x - 13, y - 4), 4)
+            pygame.draw.circle(surface, theme.BLACK, (x + 13, y - 4), 4)
+
+    @staticmethod
+    def _draw_explosion(surface: pygame.Surface, explosion: Explosion) -> None:
+        progress = 1 - explosion.timer / 0.35
+        radius = round(12 + 52 * progress)
+        alpha = max(0, round(220 * (1 - progress)))
+        layer = pygame.Surface((radius * 2 + 8, radius * 2 + 8), pygame.SRCALPHA)
+        center = (layer.get_width() // 2, layer.get_height() // 2)
+        pygame.draw.circle(layer, pygame.Color(255, 209, 102, alpha), center, radius, width=6)
+        pygame.draw.circle(layer, pygame.Color(255, 107, 94, alpha), center, max(5, radius // 2))
+        surface.blit(layer, layer.get_rect(center=(round(explosion.x), round(explosion.y))))
 
     def _draw_ship(self, surface: pygame.Surface) -> None:
         x = round(self.model.player_x)

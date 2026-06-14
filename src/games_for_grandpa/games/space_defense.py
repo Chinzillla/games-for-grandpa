@@ -18,6 +18,7 @@ class SpaceState(Enum):
 class Enemy:
     x: float
     y: float
+    kind: int
     alive: bool = True
 
 
@@ -42,7 +43,7 @@ class SpaceDefenseModel:
         self.player_x = 640.0
         # DSA: A list stores active enemies because each frame scans a small fixed group.
         self.enemies = [
-            Enemy(280 + column * 105, 120 + row * 70)
+            Enemy(280 + column * 105, 120 + row * 70, row)
             for row in range(ENEMY_ROWS)
             for column in range(ENEMY_COLUMNS)
         ]

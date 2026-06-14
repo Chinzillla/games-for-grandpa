@@ -21,10 +21,14 @@ class MazeChaseScene(Scene):
         self.hud = GameHud(controller)
         self.result_actions = ResultActions(controller, self._restart)
         self.finished_recorded = False
+        self.player_draw_pos = self._cell_center(self.model.player)
+        self.enemy_draw_pos = self._cell_center(self.model.enemy)
 
     def _restart(self) -> None:
         self.model.reset()
         self.finished_recorded = False
+        self.player_draw_pos = self._cell_center(self.model.player)
+        self.enemy_draw_pos = self._cell_center(self.model.enemy)
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -42,6 +46,18 @@ class MazeChaseScene(Scene):
 
     def update(self, dt: float) -> None:
         self.model.update(dt)
+        self.player_draw_pos = self._approach(
+            self.player_draw_pos,
+            self._cell_center(self.model.player),
+            dt,
+            13.0,
+        )
+        self.enemy_draw_pos = self._approach(
+            self.enemy_draw_pos,
+            self._cell_center(self.model.enemy),
+            dt,
+            9.0,
+        )
         if self.model.state is MazeState.COMPLETE and not self.finished_recorded:
             self.finished_recorded = True
             self.controller.record_score(self.GAME_ID, 1)
@@ -64,8 +80,18 @@ class MazeChaseScene(Scene):
                     pygame.draw.rect(surface, pygame.Color("#0B1026"), rect)
         for pellet in self.model.pellets:
             pygame.draw.circle(surface, theme.WHITE, self._cell_center(pellet), 5)
-        pygame.draw.circle(surface, theme.YELLOW, self._cell_center(self.model.player), 17)
-        pygame.draw.circle(surface, theme.CORAL, self._cell_center(self.model.enemy), 18)
+        pygame.draw.circle(
+            surface,
+            theme.YELLOW,
+            (round(self.player_draw_pos[0]), round(self.player_draw_pos[1])),
+            17,
+        )
+        pygame.draw.circle(
+            surface,
+            theme.CORAL,
+            (round(self.enemy_draw_pos[0]), round(self.enemy_draw_pos[1])),
+            18,
+        )
         if self.model.state is not MazeState.PLAYING:
             self._draw_result(surface)
             self.result_actions.draw(surface)
@@ -90,6 +116,19 @@ class MazeChaseScene(Scene):
         return (
             BOARD_X + cell.column * CELL_SIZE + CELL_SIZE // 2,
             BOARD_Y + cell.row * CELL_SIZE + CELL_SIZE // 2,
+        )
+
+    @staticmethod
+    def _approach(
+        current: tuple[int | float, int | float],
+        target: tuple[int | float, int | float],
+        dt: float,
+        speed: float,
+    ) -> tuple[float, float]:
+        alpha = min(1.0, dt * speed)
+        return (
+            current[0] + (target[0] - current[0]) * alpha,
+            current[1] + (target[1] - current[1]) * alpha,
         )
 
     def _draw_result(self, surface: pygame.Surface) -> None:

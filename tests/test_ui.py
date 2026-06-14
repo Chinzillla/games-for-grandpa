@@ -11,9 +11,13 @@ class StubController:
     def __init__(self) -> None:
         self.settings = Settings()
         self.home_calls = 0
+        self.exit_calls = 0
 
     def go_home(self) -> None:
         self.home_calls += 1
+
+    def request_exit(self) -> None:
+        self.exit_calls += 1
 
     def save_settings(self) -> None:
         return

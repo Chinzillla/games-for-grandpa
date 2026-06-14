@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "games-for-grandpa"
-version = "0.3.0"
+version = "0.3.1"
 description = "Accessible mouse-only games that demonstrate Python, OOP, and core algorithms."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"

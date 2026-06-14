@@ -21,8 +21,9 @@ data structures, algorithms, testing, packaging, and release automation.
 - **Jigsaw Puzzle:** swap 3 x 3 pieces, with an optional photo picker.
 - **Fishing:** move the rod, lower the hook, then reel gently without breaking the line.
 
-Artwork is original, using code-drawn UI plus generated transparent sprites. This project is
-not affiliated with or endorsed by any commercial game publisher.
+Artwork is original, using code-drawn UI plus generated transparent sprites. The app does
+not use copied Google Images or commercial game assets. This project is not affiliated with
+or endorsed by any commercial game publisher.
 
 ## Run from source
 

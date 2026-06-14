@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import pygame
 
 from games_for_grandpa import theme
@@ -17,10 +19,12 @@ class FishingGameScene(Scene):
         self.hud = GameHud(controller)
         self.result_actions = ResultActions(controller, self._restart)
         self.finished_recorded = False
+        self.elapsed = 0.0
 
     def _restart(self) -> None:
         self.model.reset()
         self.finished_recorded = False
+        self.elapsed = 0.0
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -43,6 +47,7 @@ class FishingGameScene(Scene):
                 self.model.set_reeling(False)
 
     def update(self, dt: float) -> None:
+        self.elapsed += dt
         previous_score = self.model.score
         self.model.update(dt)
         if self.model.score > previous_score:
@@ -56,6 +61,7 @@ class FishingGameScene(Scene):
         theme.vertical_gradient(surface, theme.SKY, theme.SKY_LIGHT)
         pygame.draw.rect(surface, pygame.Color("#2563EB"), pygame.Rect(0, 210, 1280, 510))
         pygame.draw.rect(surface, pygame.Color("#1D4ED8"), pygame.Rect(0, 295, 1280, 425))
+        self._draw_water_motion(surface)
         self._draw_score(surface)
         self._draw_fish(surface)
         self._draw_rod(surface)
@@ -88,17 +94,32 @@ class FishingGameScene(Scene):
         fish = self.model.fish
         width = round(58 * fish.size)
         height = round(28 * fish.size)
+        swim_y = fish.y + math.sin(self.elapsed * 6.0 + fish.x * 0.02) * 5
         pygame.draw.ellipse(
             surface,
             theme.CORAL,
-            pygame.Rect(fish.x - width // 2, fish.y - height // 2, width, height),
+            pygame.Rect(fish.x - width // 2, swim_y - height // 2, width, height),
         )
+        tail_wiggle = math.sin(self.elapsed * 12.0) * 8
         tail = [
-            (fish.x - width // 2, fish.y),
-            (fish.x - width, fish.y - height // 2),
-            (fish.x - width, fish.y + height // 2),
+            (fish.x - width // 2, swim_y),
+            (fish.x - width, swim_y - height // 2 + tail_wiggle),
+            (fish.x - width, swim_y + height // 2 + tail_wiggle),
         ]
         pygame.draw.polygon(surface, theme.YELLOW, tail)
+
+    def _draw_water_motion(self, surface: pygame.Surface) -> None:
+        for row, y in enumerate((250, 335, 430, 535)):
+            for x in range(-80, 1360, 180):
+                offset = round(math.sin(self.elapsed * 2.0 + row + x * 0.01) * 18)
+                pygame.draw.arc(
+                    surface,
+                    pygame.Color("#93C5FD"),
+                    pygame.Rect(x + offset, y, 110, 34),
+                    0,
+                    math.pi,
+                    3,
+                )
 
     def _draw_tension(self, surface: pygame.Surface) -> None:
         panel = pygame.Rect(410, 625, 460, 38)

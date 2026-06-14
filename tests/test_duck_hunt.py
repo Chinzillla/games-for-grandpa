@@ -63,6 +63,23 @@ def test_missed_shot_does_not_remove_points() -> None:
     assert model.score == 0
 
 
+def test_visible_duck_body_click_counts_as_hit() -> None:
+    model = DuckHuntModel(Difficulty.CHALLENGE)
+
+    assert model.shoot((round(model.duck.x + 62), round(model.duck.y)))
+    assert model.score == 1
+
+
+def test_duck_returns_to_playing_after_hit_display() -> None:
+    model = DuckHuntModel()
+
+    assert model.shoot((round(model.duck.x), round(model.duck.y)))
+    model.update(HIT_DISPLAY_SECONDS)
+
+    assert model.state is DuckHuntState.PLAYING
+    assert model.score == 1
+
+
 def test_shooting_duck_completes_after_ten_hits() -> None:
     model = DuckHuntModel()
 

@@ -22,7 +22,7 @@ class DuckHuntScene(Scene):
 
     def __init__(self, controller: AppController) -> None:
         self.controller = controller
-        self.model = DuckHuntModel(Difficulty.CHALLENGE)
+        self.model = DuckHuntModel(Difficulty.NORMAL)
         self.crosshair = (640, 360)
 
         duck_path = files("games_for_grandpa.assets").joinpath("duck.png")
@@ -35,7 +35,9 @@ class DuckHuntScene(Scene):
 
         shotgun_path = files("games_for_grandpa.assets").joinpath("first_person_shotgun.png")
         shotgun_source = pygame.image.load(str(shotgun_path)).convert_alpha()
-        self.shotgun_sprite = pygame.transform.smoothscale(shotgun_source, (430, 267))
+        self.shotgun_sprite = pygame.transform.smoothscale(shotgun_source, (390, 242))
+        self.elapsed = 0.0
+        self.shot_flash_timer = 0.0
 
         self.hud = GameHud(controller)
         self.result_actions = ResultActions(controller, self._restart)
@@ -53,7 +55,9 @@ class DuckHuntScene(Scene):
         )
 
     def _restart(self) -> None:
-        self.model.reset(Difficulty.CHALLENGE)
+        self.model.reset(Difficulty.NORMAL)
+        self.elapsed = 0.0
+        self.shot_flash_timer = 0.0
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -71,10 +75,14 @@ class DuckHuntScene(Scene):
         ):
             return
         self.controller.play_sound("gunshot")
-        if self.model.shoot(event.pos):
+        self.shot_flash_timer = 0.12
+        shot_position = self._friendly_hit_position(event.pos)
+        if shot_position is not None and self.model.shoot(shot_position):
             self.controller.play_sound("quack")
 
     def update(self, dt: float) -> None:
+        self.elapsed += dt
+        self.shot_flash_timer = max(0.0, self.shot_flash_timer - dt)
         events = self.model.update(dt)
         if DuckHuntEvent.ESCAPED in events:
             self.controller.play_sound("point")
@@ -136,7 +144,14 @@ class DuckHuntScene(Scene):
         sprite = self.duck_hit_sprite if self.model.state is DuckHuntState.HIT else self.duck_sprite
         if self.model.duck.vx < 0:
             sprite = pygame.transform.flip(sprite, True, False)
-        rect = sprite.get_rect(center=(round(self.model.duck.x), round(self.model.duck.y)))
+        bob = (
+            0
+            if self.model.state is DuckHuntState.HIT
+            else round(math.sin(self.elapsed * 9.0) * 8)
+        )
+        tilt = 0 if self.model.state is DuckHuntState.HIT else math.sin(self.elapsed * 7.0) * 7
+        sprite = pygame.transform.rotozoom(sprite, tilt, 1.0)
+        rect = sprite.get_rect(center=(round(self.model.duck.x), round(self.model.duck.y + bob)))
         surface.blit(sprite, rect)
 
     def _draw_shotgun(self, surface: pygame.Surface) -> None:
@@ -145,8 +160,12 @@ class DuckHuntScene(Scene):
         # DSA: O(1) angle math maps cursor offset to a subtle first-person aim pose.
         angle = -math.degrees(math.atan2(aim_x, 9.5))
         rotated = pygame.transform.rotozoom(self.shotgun_sprite, angle, 1.0)
-        center = (round(640 + aim_x * 38), round(650 + aim_y * 16))
+        center = (round(640 + aim_x * 34), round(658 + aim_y * 14))
         surface.blit(rotated, rotated.get_rect(center=center))
+        if self.shot_flash_timer > 0:
+            flash_center = (round(640 + aim_x * 70), round(500 + aim_y * 38))
+            pygame.draw.circle(surface, theme.YELLOW, flash_center, 42)
+            pygame.draw.circle(surface, theme.WHITE, flash_center, 22)
 
     def _draw_crosshair(self, surface: pygame.Surface) -> None:
         x, y = self.crosshair
@@ -154,6 +173,14 @@ class DuckHuntScene(Scene):
         pygame.draw.line(surface, theme.CORAL, (x - 40, y), (x + 40, y), 4)
         pygame.draw.line(surface, theme.CORAL, (x, y - 40), (x, y + 40), 4)
         pygame.draw.circle(surface, theme.WHITE, (x, y), 4)
+
+    def _friendly_hit_position(self, position: tuple[int, int]) -> tuple[int, int] | None:
+        duck_rect = self.duck_sprite.get_rect(
+            center=(round(self.model.duck.x), round(self.model.duck.y))
+        )
+        if duck_rect.inflate(34, 34).collidepoint(position):
+            return (round(self.model.duck.x), round(self.model.duck.y))
+        return position
 
     def _draw_score(self, surface: pygame.Surface) -> None:
         badge = pygame.Rect(500, 22, 280, 58)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import pygame
 
 from games_for_grandpa import theme
@@ -27,9 +29,13 @@ class WhackAMoleScene(Scene):
         self.model = WhackAMoleModel()
         self.hud = GameHud(controller)
         self.result_actions = ResultActions(controller, self._restart)
+        self.elapsed = 0.0
+        self.hit_feedback_timer = 0.0
 
     def _restart(self) -> None:
         self.model.reset()
+        self.elapsed = 0.0
+        self.hit_feedback_timer = 0.0
         self.controller.play_sound("click")
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -43,6 +49,7 @@ class WhackAMoleScene(Scene):
         for index, rect in enumerate(HOLE_RECTS):
             if rect.collidepoint(event.pos):
                 if self.model.whack(index):
+                    self.hit_feedback_timer = 0.25
                     self.controller.play_sound("success")
                     if self.model.state is WhackState.COMPLETE:
                         self.controller.record_score(self.GAME_ID, self.model.score)
@@ -50,6 +57,8 @@ class WhackAMoleScene(Scene):
                 return
 
     def update(self, dt: float) -> None:
+        self.elapsed += dt
+        self.hit_feedback_timer = max(0.0, self.hit_feedback_timer - dt)
         self.model.update(dt)
 
     def draw(self, surface: pygame.Surface) -> None:
@@ -57,6 +66,8 @@ class WhackAMoleScene(Scene):
         self._draw_score(surface)
         for index, rect in enumerate(HOLE_RECTS):
             self._draw_hole(surface, rect, index == self.model.active_hole)
+        if self.hit_feedback_timer > 0:
+            self._draw_hit_feedback(surface)
         if self.model.state is WhackState.COMPLETE:
             self._draw_result(surface)
             self.result_actions.draw(surface)
@@ -75,12 +86,12 @@ class WhackAMoleScene(Scene):
             bold=True,
         )
 
-    @staticmethod
-    def _draw_hole(surface: pygame.Surface, rect: pygame.Rect, active: bool) -> None:
+    def _draw_hole(self, surface: pygame.Surface, rect: pygame.Rect, active: bool) -> None:
         pygame.draw.ellipse(surface, pygame.Color("#5A3B1B"), rect)
         pygame.draw.ellipse(surface, pygame.Color("#2F2218"), rect.inflate(-18, -18))
         if active:
-            mole = pygame.Rect(rect.centerx - 42, rect.centery - 70, 84, 98)
+            bob = round(math.sin(self.elapsed * 10.0) * 6)
+            mole = pygame.Rect(rect.centerx - 42, rect.centery - 74 + bob, 84, 102)
             pygame.draw.ellipse(surface, pygame.Color("#8B5E34"), mole)
             pygame.draw.circle(
                 surface,
@@ -96,6 +107,14 @@ class WhackAMoleScene(Scene):
             )
             pygame.draw.circle(surface, theme.BLACK, (mole.centerx - 16, mole.y + 34), 5)
             pygame.draw.circle(surface, theme.BLACK, (mole.centerx + 16, mole.y + 34), 5)
+
+    def _draw_hit_feedback(self, surface: pygame.Surface) -> None:
+        radius = round(70 * self.hit_feedback_timer / 0.25)
+        center = HOLE_RECTS[self.model.active_hole].center
+        for angle in range(0, 360, 60):
+            x = center[0] + round(math.cos(math.radians(angle)) * radius)
+            y = center[1] + round(math.sin(math.radians(angle)) * radius)
+            pygame.draw.circle(surface, theme.YELLOW, (x, y), 10)
 
     def _draw_result(self, surface: pygame.Surface) -> None:
         panel = pygame.Rect(330, 210, 620, 300)

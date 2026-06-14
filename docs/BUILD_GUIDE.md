@@ -199,13 +199,13 @@ cost hearts, and result screens expose only Home and Restart.
 
 **Goal:** Add the rest of the requested mouse-only games while keeping the launcher simple.
 
-**Concepts:** paged lists, breadth-first search, minimax, permutation lists, collision
+**Concepts:** grid layout, breadth-first search, minimax, permutation lists, collision
 detection, finite-state machines, and small pure models.
 
 **Build order:** first add one pure model per game and cover it with focused tests. Then
 register each game in the dictionary registry, add a visual scene, and refresh screenshots.
-Finally, page the Game Room in groups of three cards so the controls stay large with eleven
-games.
+Finally, arrange the Game Room as one grid of large enough cards so the player does not need
+page navigation.
 
 ```powershell
 uv run ruff check .
@@ -214,7 +214,7 @@ uv run games-for-grandpa --smoke-test
 uv run python scripts/capture_screenshots.py
 ```
 
-**Expected result:** the Game Room has four pages, every card launches by mouse click, and
+**Expected result:** the Game Room shows all cards on one screen, every card launches by mouse click, and
 each added game has a testable model that can be studied without pygame.
 
 **Checkpoint:** `git checkout lesson-10-expanded-catalog`

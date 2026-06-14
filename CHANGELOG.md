@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.3.1 - 2026-06-14
+
+### Fixed
+
+- Fixed Duck Hunt getting stuck in the hit state after the first duck, which prevented the
+  player from shooting the next spawned duck.
+- Made Duck Hunt visible-body shots count instead of requiring a tiny center-point hit.
+- Tuned Duck Hunt speed and hit radius to be more playable.
+
+### Changed
+
+- Replaced paged Game Room browsing with a single-screen grid of all game cards.
+- Added a red Exit button on the Game Room.
+- Changed Connect Four so the player's translucent coin hovers above the selected column,
+  then drops after click; the computer now takes its own animated drop turn.
+- Reworked Space Defense enemies into multiple original spaceship silhouettes by row.
+- Added first-pass game-feel feedback: Duck Hunt muzzle flash and bobbing, Connect Four
+  falling pieces, Tic Tac Toe mark pop-in, smoother Maze Chase movement, Whack-a-Mole hit
+  feedback, Memory Card symbols and pulse feedback, Jigsaw selection/swap feedback, Fishing
+  water motion, and Space Defense hit effects.
+
 ## v0.3.0 - 2026-06-14
 
 ### Added

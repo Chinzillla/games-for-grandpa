@@ -16,11 +16,12 @@ This matches game room -> game navigation naturally.
 A dictionary maps stable game IDs to `GameDefinition` objects. Looking up a selected game
 is average O(1), and adding a game does not require a large conditional statement.
 
-### Paged launcher
+### One-screen launcher
 
-The Game Room stores registered games in a list and displays three cards per page. Page
-navigation changes the visible slice in O(k), where k is the small page size. The stable game
-registry remains a dictionary so launching a selected game is still average O(1).
+The Game Room stores registered games in a list and maps each list index to a grid position.
+Rendering the launcher is O(n) in the number of games, which is small enough for a single
+screen. The stable game registry remains a dictionary so launching a selected game is still
+average O(1).
 
 ### Finite-state machines
 
@@ -57,6 +58,8 @@ The board is a flat 42-cell array indexed by row and column. A set tracks column
 still accept a piece, giving average O(1) membership checks. Winner detection scans fixed
 four-cell windows across four directions. The computer uses depth-limited minimax with
 alpha-beta pruning and a small board-evaluation function that scores open four-cell windows.
+The scene animates player and computer drops separately, but the model remains the source of
+truth for legal columns and AI decisions.
 
 ## Space Defense
 

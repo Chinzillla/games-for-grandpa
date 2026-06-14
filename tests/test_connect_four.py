@@ -11,6 +11,24 @@ def test_player_drop_places_piece_in_lowest_row() -> None:
     assert model.piece_at(5, 0) is Piece.PLAYER
 
 
+def test_player_and_computer_can_drop_as_separate_steps() -> None:
+    model = ConnectFourModel()
+
+    player_drop = model.drop_player_piece(0)
+
+    assert player_drop is not None
+    assert player_drop.row == 5
+    assert player_drop.column == 0
+    assert player_drop.piece is Piece.PLAYER
+    assert model.piece_at(5, 0) is Piece.PLAYER
+
+    computer_drop = model.drop_computer_piece()
+
+    assert computer_drop is not None
+    assert computer_drop.piece is Piece.COMPUTER
+    assert model.piece_at(computer_drop.row, computer_drop.column) is Piece.COMPUTER
+
+
 def test_computer_blocks_immediate_vertical_threat() -> None:
     model = ConnectFourModel()
     for _ in range(3):

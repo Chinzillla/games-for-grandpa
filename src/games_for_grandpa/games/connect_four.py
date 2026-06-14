@@ -28,6 +28,13 @@ class MoveScore:
     score: int
 
 
+@dataclass(frozen=True, slots=True)
+class DropResult:
+    row: int
+    column: int
+    piece: Piece
+
+
 class ConnectFourModel:
     def __init__(self) -> None:
         self.cells = [Piece.EMPTY] * (ROWS * COLUMNS)
@@ -40,14 +47,31 @@ class ConnectFourModel:
         self.state = ConnectState.PLAYING
 
     def player_move(self, column: int) -> bool:
-        if self.state is not ConnectState.PLAYING or column not in self.legal_columns:
+        if self.drop_player_piece(column) is None:
             return False
-        self._drop(column, Piece.PLAYER)
-        self.state = self._state_after_move()
         if self.state is ConnectState.PLAYING:
-            self._drop(self._choose_computer_column(), Piece.COMPUTER)
-            self.state = self._state_after_move()
+            self.drop_computer_piece()
         return True
+
+    def drop_player_piece(self, column: int) -> DropResult | None:
+        if self.state is not ConnectState.PLAYING or column not in self.legal_columns:
+            return None
+        row = self._drop(column, Piece.PLAYER)
+        self.state = self._state_after_move()
+        return DropResult(row, column, Piece.PLAYER)
+
+    def drop_computer_piece(self, column: int | None = None) -> DropResult | None:
+        if self.state is not ConnectState.PLAYING:
+            return None
+        column = self.choose_computer_column() if column is None else column
+        if column not in self.legal_columns:
+            return None
+        row = self._drop(column, Piece.COMPUTER)
+        self.state = self._state_after_move()
+        return DropResult(row, column, Piece.COMPUTER)
+
+    def choose_computer_column(self) -> int:
+        return self._choose_computer_column()
 
     def piece_at(self, row: int, column: int) -> Piece:
         return self.cells[row * COLUMNS + column]

@@ -53,6 +53,9 @@ class App:
     def go_home(self) -> None:
         self.scenes.reset(HomeScene(self, self.registry))
 
+    def request_exit(self) -> None:
+        self.running = False
+
     def start_game(self, game_id: str) -> None:
         definition = self.registry[game_id]
         self.scenes.push(definition.scene_factory(self))

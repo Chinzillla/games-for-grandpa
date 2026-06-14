@@ -28,7 +28,7 @@ The suite verifies:
 - missing, corrupt, and valid persistence files;
 - mouse-only navigation from Home into a game and back;
 - the minimal Home/Sound HUD and result-screen restart behavior;
-- paged Game Room behavior for all eleven game cards;
+- one-screen Game Room behavior for all eleven game cards and the Exit button;
 - rendering every scene for 1280 x 720 and 1920 x 1080 output;
 - headless initialization and drawing of every registered game.
 

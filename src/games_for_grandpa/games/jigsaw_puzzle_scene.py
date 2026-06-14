@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import pygame
 
 from games_for_grandpa import theme
@@ -25,6 +27,9 @@ class JigsawPuzzleScene(Scene):
         self.image = self._default_image()
         self.hud = GameHud(controller)
         self.result_actions = ResultActions(controller, self._restart)
+        self.elapsed = 0.0
+        self.last_swap: tuple[int, int] | None = None
+        self.swap_timer = 0.0
         self.choose_button = Button(
             pygame.Rect(80, 610, 210, 60),
             "Choose Photo",
@@ -40,6 +45,8 @@ class JigsawPuzzleScene(Scene):
 
     def _restart(self) -> None:
         self.model.shuffle()
+        self.last_swap = None
+        self.swap_timer = 0.0
         self.controller.play_sound("click")
 
     def _choose_photo(self) -> None:
@@ -75,14 +82,18 @@ class JigsawPuzzleScene(Scene):
             return
         column = (event.pos[0] - BOARD_RECT.x) // PIECE_SIZE
         row = (event.pos[1] - BOARD_RECT.y) // PIECE_SIZE
-        if self.model.click(row * GRID_SIZE + column):
+        swap = self.model.click(row * GRID_SIZE + column)
+        if swap:
+            self.last_swap = (swap.first, swap.second)
+            self.swap_timer = 0.25
             self.controller.play_sound("success")
             if self.model.state is JigsawState.COMPLETE:
                 self.controller.record_score(self.GAME_ID, PIECE_COUNT)
                 self.controller.play_sound("complete")
 
     def update(self, dt: float) -> None:
-        del dt
+        self.elapsed += dt
+        self.swap_timer = max(0.0, self.swap_timer - dt)
 
     def draw(self, surface: pygame.Surface) -> None:
         theme.vertical_gradient(surface, pygame.Color("#FFE6A7"), pygame.Color("#F9FAFB"))
@@ -95,6 +106,10 @@ class JigsawPuzzleScene(Scene):
                 PIECE_SIZE,
                 PIECE_SIZE,
             )
+            if self.last_swap and board_index in self.last_swap and self.swap_timer > 0:
+                lift = round(18 * self.swap_timer / 0.25)
+                pygame.draw.rect(surface, theme.SHADOW, dest.move(0, lift), border_radius=10)
+                dest = dest.inflate(lift, lift).move(0, -lift // 2)
             source = pygame.Rect(
                 source_column * PIECE_SIZE,
                 source_row * PIECE_SIZE,
@@ -111,7 +126,8 @@ class JigsawPuzzleScene(Scene):
                 PIECE_SIZE,
                 PIECE_SIZE,
             )
-            pygame.draw.rect(surface, theme.CORAL, selected, width=8)
+            pulse = 8 + round(math.sin(self.elapsed * 8.0) * 3)
+            pygame.draw.rect(surface, theme.CORAL, selected, width=pulse)
         if self.model.state is JigsawState.COMPLETE:
             self._draw_result(surface)
             self.result_actions.draw(surface)

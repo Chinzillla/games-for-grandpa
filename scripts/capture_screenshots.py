@@ -30,12 +30,7 @@ def main() -> int:
             "jigsaw_puzzle": "jigsaw-puzzle",
             "fishing_game": "fishing",
         }
-        home_scene = HomeScene(app, app.registry)
-        scenes = [("game-room", home_scene)]
-        for page in range(home_scene.page_count):
-            paged_scene = HomeScene(app, app.registry)
-            paged_scene.page = page
-            scenes.append((f"game-room-page-{page + 1}", paged_scene))
+        scenes = [("game-room", HomeScene(app, app.registry))]
         scenes.extend(
             (names[definition.game_id], definition.scene_factory(app))
             for definition in app.registry.values()
