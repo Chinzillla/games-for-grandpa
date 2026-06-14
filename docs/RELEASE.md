@@ -17,7 +17,7 @@ mouse.
 ## Publish
 
 ```powershell
-git tag -a v0.3.1 -m "Games for Grandpa v0.3.1"
+git tag -a v0.3.2 -m "Games for Grandpa v0.3.2"
 git push origin main --follow-tags
 ```
 

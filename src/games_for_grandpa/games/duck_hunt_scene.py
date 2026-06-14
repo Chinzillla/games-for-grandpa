@@ -8,7 +8,6 @@ import pygame
 from games_for_grandpa import theme
 from games_for_grandpa.core import AppController, Difficulty, Scene
 from games_for_grandpa.games.duck_hunt import (
-    DUCKS_TO_COMPLETE,
     STARTING_LIVES,
     DuckHuntEvent,
     DuckHuntModel,
@@ -43,10 +42,7 @@ class DuckHuntScene(Scene):
         self.result_actions = ResultActions(controller, self._restart)
 
     def _finished(self) -> bool:
-        return self.model.state in (
-            DuckHuntState.COMPLETE,
-            DuckHuntState.GAME_OVER,
-        )
+        return self.model.state is DuckHuntState.GAME_OVER
 
     def _duck_visible(self) -> bool:
         return self.model.state in (
@@ -86,10 +82,7 @@ class DuckHuntScene(Scene):
         events = self.model.update(dt)
         if DuckHuntEvent.ESCAPED in events:
             self.controller.play_sound("point")
-        if DuckHuntEvent.COMPLETE in events:
-            self.controller.record_score(self.GAME_ID, self.model.score)
-            self.controller.play_sound("complete")
-        elif DuckHuntEvent.GAME_OVER in events:
+        if DuckHuntEvent.GAME_OVER in events:
             self.controller.record_score(self.GAME_ID, self.model.score)
 
     def draw(self, surface: pygame.Surface) -> None:
@@ -163,9 +156,26 @@ class DuckHuntScene(Scene):
         center = (round(640 + aim_x * 34), round(658 + aim_y * 14))
         surface.blit(rotated, rotated.get_rect(center=center))
         if self.shot_flash_timer > 0:
-            flash_center = (round(640 + aim_x * 70), round(500 + aim_y * 38))
-            pygame.draw.circle(surface, theme.YELLOW, flash_center, 42)
-            pygame.draw.circle(surface, theme.WHITE, flash_center, 22)
+            self._draw_muzzle_bang(surface, aim_x, aim_y)
+
+    def _draw_muzzle_bang(self, surface: pygame.Surface, aim_x: float, aim_y: float) -> None:
+        progress = self.shot_flash_timer / 0.12
+        tip = (round(640 + aim_x * 62), round(525 + aim_y * 30))
+        burst_radius = round(20 + 42 * progress)
+        points: list[tuple[int, int]] = []
+        for index in range(14):
+            angle = -math.pi / 2 + index * math.pi / 7
+            radius = burst_radius if index % 2 == 0 else round(burst_radius * 0.48)
+            points.append(
+                (
+                    tip[0] + round(math.cos(angle) * radius),
+                    tip[1] + round(math.sin(angle) * radius),
+                )
+            )
+        pygame.draw.polygon(surface, theme.YELLOW, points)
+        pygame.draw.circle(surface, theme.WHITE, tip, round(16 + 18 * progress))
+        text_y = tip[1] - round(58 + 18 * progress)
+        theme.draw_text(surface, "BANG!", 30, theme.CORAL_DARK, (tip[0], text_y), bold=True)
 
     def _draw_crosshair(self, surface: pygame.Surface) -> None:
         x, y = self.crosshair
@@ -187,7 +197,7 @@ class DuckHuntScene(Scene):
         pygame.draw.rect(surface, theme.WHITE, badge, border_radius=29)
         theme.draw_text(
             surface,
-            f"Ducks  {self.model.score} / {DUCKS_TO_COMPLETE}",
+            f"Ducks  {self.model.score}",
             27,
             theme.INK,
             badge.center,
@@ -208,11 +218,7 @@ class DuckHuntScene(Scene):
     def _draw_result(self, surface: pygame.Surface) -> None:
         panel = pygame.Rect(330, 210, 620, 300)
         theme.draw_card(surface, panel, color=theme.CREAM, shadow_offset=10, radius=34)
-        if self.model.state is DuckHuntState.COMPLETE:
-            title = "You win!"
-            detail = "10 ducks hit."
-        else:
-            title = "Try again!"
-            detail = "The ducks got away."
+        title = "Try again!"
+        detail = f"You hit {self.model.score} ducks."
         theme.draw_text(surface, title, 52, theme.INK, (640, 290), bold=True)
         theme.draw_text(surface, detail, 30, theme.INK_SOFT, (640, 350))

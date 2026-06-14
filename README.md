@@ -9,7 +9,7 @@ data structures, algorithms, testing, packaging, and release automation.
 
 ## Included games
 
-- **Duck Hunt:** aim the shotgun, hit ten small moving ducks, and protect ten hearts.
+- **Duck Hunt:** aim the shotgun, keep hitting ducks, and protect ten hearts as ducks get faster.
 - **Tic Tac Toe:** play against medium minimax AI.
 - **Connect Four:** drop pieces into a column against depth-limited AI.
 - **Pong:** move one paddle with the mouse against easy speed-limited AI.

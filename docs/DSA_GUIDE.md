@@ -32,9 +32,10 @@ This prevents contradictory Boolean combinations and makes transitions explicit.
 
 The duck has continuous position and velocity values. Each frame updates those vectors and
 checks escape bounds in O(1). Escaped ducks subtract one life; the finite-state machine ends
-the round at either ten hits or zero lives. A list stores reusable flight patterns, while a
-bounded `deque` remembers the three most recent pattern indices so new ducks do not repeat
-the same route.
+the round when lives reach zero. Score is unbounded, and the spawn speed scales from the
+current score with an upper cap. A list stores reusable flight patterns, while a bounded
+`deque` remembers the three most recent pattern indices so new ducks do not repeat the same
+route.
 
 ## Tic Tac Toe
 

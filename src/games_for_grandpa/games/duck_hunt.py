@@ -7,7 +7,6 @@ from enum import Enum
 
 from games_for_grandpa.core import Difficulty
 
-DUCKS_TO_COMPLETE = 10
 STARTING_LIVES = 10
 FLIGHT_LEFT = 120.0
 FLIGHT_RIGHT = 1160.0
@@ -20,13 +19,11 @@ HIT_DISPLAY_SECONDS = 0.55
 class DuckHuntState(Enum):
     PLAYING = "playing"
     HIT = "hit"
-    COMPLETE = "complete"
     GAME_OVER = "game_over"
 
 
 class DuckHuntEvent(Enum):
     ESCAPED = "escaped"
-    COMPLETE = "complete"
     GAME_OVER = "game_over"
 
 
@@ -82,6 +79,8 @@ class DuckHuntModel:
         Difficulty.NORMAL: 78.0,
         Difficulty.CHALLENGE: 70.0,
     }
+    SPEED_INCREASE_PER_DUCK = 10.0
+    MAX_SPEED_MULTIPLIER = 2.15
 
     def __init__(
         self,
@@ -102,18 +101,20 @@ class DuckHuntModel:
     def hit_radius(self) -> float:
         return self.HIT_RADIUS_BY_DIFFICULTY[self.difficulty]
 
+    @property
+    def current_speed(self) -> float:
+        base_speed = self.SPEED_BY_DIFFICULTY[self.difficulty]
+        scaled_speed = base_speed + self.score * self.SPEED_INCREASE_PER_DUCK
+        return min(base_speed * self.MAX_SPEED_MULTIPLIER, scaled_speed)
+
     def update(self, dt: float) -> set[DuckHuntEvent]:
         events: set[DuckHuntEvent] = set()
         if self.state is DuckHuntState.HIT:
             self.hit_timer -= dt
             self.duck.y += 180.0 * dt
             if self.hit_timer <= 0:
-                if self.score >= DUCKS_TO_COMPLETE:
-                    self.state = DuckHuntState.COMPLETE
-                    events.add(DuckHuntEvent.COMPLETE)
-                else:
-                    self._spawn_duck()
-                    self.state = DuckHuntState.PLAYING
+                self._spawn_duck()
+                self.state = DuckHuntState.PLAYING
             return events
         if self.state is not DuckHuntState.PLAYING:
             return events
@@ -126,7 +127,7 @@ class DuckHuntModel:
         return events
 
     def shoot(self, position: tuple[int, int]) -> bool:
-        if self.state is DuckHuntState.COMPLETE:
+        if self.state is not DuckHuntState.PLAYING:
             return False
         x, y = position
         distance_squared = (x - self.duck.x) ** 2 + (y - self.duck.y) ** 2
@@ -168,7 +169,7 @@ class DuckHuntModel:
 
     def _spawn_duck(self) -> None:
         pattern = self.scheduler.next_pattern()
-        speed = self.SPEED_BY_DIFFICULTY[self.difficulty]
+        speed = self.current_speed
         self.duck = Duck(
             pattern.start_x,
             pattern.start_y,

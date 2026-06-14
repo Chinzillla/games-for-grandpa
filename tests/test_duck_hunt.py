@@ -4,7 +4,6 @@ import random
 
 from games_for_grandpa.core import Difficulty
 from games_for_grandpa.games.duck_hunt import (
-    DUCKS_TO_COMPLETE,
     ESCAPE_MARGIN,
     FLIGHT_RIGHT,
     HIT_DISPLAY_SECONDS,
@@ -80,16 +79,26 @@ def test_duck_returns_to_playing_after_hit_display() -> None:
     assert model.score == 1
 
 
-def test_shooting_duck_completes_after_ten_hits() -> None:
+def test_duck_hunt_keeps_spawning_after_many_hits() -> None:
     model = DuckHuntModel()
 
-    for _ in range(DUCKS_TO_COMPLETE):
+    for expected_score in range(1, 16):
         assert model.shoot((round(model.duck.x), round(model.duck.y)))
         assert model.state is DuckHuntState.HIT
         model.update(HIT_DISPLAY_SECONDS)
+        assert model.score == expected_score
+        assert model.state is DuckHuntState.PLAYING
 
-    assert model.score == DUCKS_TO_COMPLETE
-    assert model.state is DuckHuntState.COMPLETE
+
+def test_ducks_get_faster_as_score_increases() -> None:
+    model = DuckHuntModel(Difficulty.NORMAL)
+    starting_speed = model.current_speed
+
+    for _ in range(5):
+        assert model.shoot((round(model.duck.x), round(model.duck.y)))
+        model.update(HIT_DISPLAY_SECONDS)
+
+    assert model.current_speed > starting_speed
 
 
 def test_difficulty_increases_speed_and_reduces_hit_radius() -> None:

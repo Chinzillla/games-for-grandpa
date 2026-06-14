@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.3.2 - 2026-06-14
+
+### Changed
+
+- Changed Duck Hunt into an endless score game instead of ending after ten ducks.
+- Ducks now get faster as the player hits more of them.
+- Duck Hunt now shows only the running duck count and ends only when hearts run out.
+- Moved the shot effect to the gun tip and added a visible "BANG!" burst.
+- Kept shot audio to the generated gunshot sound and kept hit audio to the quack sound.
+
 ## v0.3.1 - 2026-06-14
 
 ### Fixed

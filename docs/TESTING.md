@@ -14,7 +14,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 The suite verifies:
 
 - scene-stack, registry, viewport, and mouse-button behavior;
-- Duck Hunt movement, flight scheduling, hit detection, escape/life loss, and scoring;
+- Duck Hunt movement, flight scheduling, hit detection, speed ramping, escape/life loss, and scoring;
 - every Tic Tac Toe winning line and all reachable player paths against Challenge AI;
 - Connect Four legal columns, wins, draws, and computer replies;
 - Pong reflection, prediction, clamping, collision, speed limits, and scoring;
