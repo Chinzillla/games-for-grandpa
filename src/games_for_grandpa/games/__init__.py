@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from games_for_grandpa.core import AppController, GameDefinition
+from games_for_grandpa.core import GameDefinition
+from games_for_grandpa.games.paddle_rally_scene import PaddleRallyScene
 from games_for_grandpa.games.target_tap_scene import TargetTapScene
 from games_for_grandpa.games.three_in_row_scene import ThreeInRowScene
-from games_for_grandpa.scenes import ComingSoonScene
 
 
 def build_game_registry() -> dict[str, GameDefinition]:
@@ -20,23 +20,12 @@ def build_game_registry() -> dict[str, GameDefinition]:
             description="Place three marks in a row.\nPlay a friendly computer.",
             scene_factory=ThreeInRowScene,
         ),
-        _placeholder(
-            "paddle_rally",
-            "Paddle Rally",
-            "Move the paddle with the mouse.\nKeep the ball in play.",
+        GameDefinition(
+            game_id="paddle_rally",
+            title="Paddle Rally",
+            description="Move the paddle with the mouse.\nKeep the ball in play.",
+            scene_factory=PaddleRallyScene,
         ),
     )
     # DSA: A dictionary gives average O(1) lookup from a stable game ID.
     return {definition.game_id: definition for definition in definitions}
-
-
-def _placeholder(game_id: str, title: str, description: str) -> GameDefinition:
-    def factory(controller: AppController) -> ComingSoonScene:
-        return ComingSoonScene(controller, game_id, title)
-
-    return GameDefinition(
-        game_id=game_id,
-        title=title,
-        description=description,
-        scene_factory=factory,
-    )
