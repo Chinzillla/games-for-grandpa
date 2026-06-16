@@ -34,6 +34,9 @@ def main() -> int:
             for definition in app.registry.values()
         )
         for name, scene in scenes:
+            if name == "memory-cards" and hasattr(scene, "model"):
+                for card in scene.model.cards[:12]:
+                    card.face_up = True
             scene.draw(app.canvas)
             pygame.image.save(app.canvas, output / f"{name}.png")
     finally:

@@ -21,7 +21,7 @@ The suite verifies:
 - Space Defense movement, automatic shots, enemy collision, enemy bolts, shields, and loss states;
 - Maze Chase pellet collection and BFS enemy pathing;
 - Whack-a-Mole spawn scheduling and click scoring;
-- Memory Cards pair matching and grid-size changes;
+- Memory Cards pair matching, generated object icons, and grid-size changes up to 6 x 6;
 - Jigsaw Puzzle tray shuffling, correct-drop snapping, rejected drops, piece counts, and completion;
 - missing, corrupt, and valid persistence files;
 - mouse-only navigation from Home into a game and back;

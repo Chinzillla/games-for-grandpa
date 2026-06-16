@@ -84,7 +84,11 @@ class HomeScene(Scene):
 
     def _render_preview(self, definition: GameDefinition) -> pygame.Surface:
         snapshot = pygame.Surface(LOGICAL_SIZE)
-        definition.scene_factory(self.controller).draw(snapshot)
+        scene = definition.scene_factory(self.controller)
+        if definition.game_id == "memory_cards" and hasattr(scene, "model"):
+            for card in scene.model.cards[:12]:
+                card.face_up = True
+        scene.draw(snapshot)
         return pygame.transform.smoothscale(snapshot, (232, 100))
 
     def handle_event(self, event: pygame.event.Event) -> None:

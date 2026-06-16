@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from importlib.resources import files
 
 import pygame
 
@@ -8,6 +9,7 @@ from games_for_grandpa import theme
 from games_for_grandpa.core import AppController, Scene
 from games_for_grandpa.games.memory_cards import (
     GRID_OPTIONS,
+    PAIR_ICON_COUNT,
     MemoryCardsModel,
     MemoryState,
 )
@@ -16,6 +18,10 @@ from games_for_grandpa.ui import Button, GameHud, ResultActions
 BOARD_AREA = pygame.Rect(205, 115, 720, 540)
 SIDE_PANEL = pygame.Rect(980, 120, 230, 470)
 CARD_GAP = 18
+LARGE_CARD_GAP = 10
+ICON_COLUMNS = 6
+ICON_ROWS = 3
+ICON_SIZE = 256
 PAIR_COLORS = (
     pygame.Color("#FF8A80"),
     pygame.Color("#80B9FF"),
@@ -38,9 +44,10 @@ class MemoryCardsScene(Scene):
         self.result_actions = ResultActions(controller, self._restart)
         self.elapsed = 0.0
         self.card_pulses = [0.0] * self.model.card_count
+        self.icons = self._load_icons()
         self.grid_buttons = [
             Button(
-                pygame.Rect(SIDE_PANEL.x + 30, SIDE_PANEL.y + 116 + index * 78, 170, 58),
+                pygame.Rect(SIDE_PANEL.x + 30, SIDE_PANEL.y + 116 + index * 55, 170, 48),
                 f"{rows} x {columns}",
                 lambda grid=(rows, columns): self._change_grid(grid),
                 accent=theme.SKY,
@@ -81,10 +88,12 @@ class MemoryCardsScene(Scene):
 
     def update(self, dt: float) -> None:
         self.elapsed += dt
+        self._sync_card_pulses()
         self.card_pulses = [max(0.0, pulse - dt) for pulse in self.card_pulses]
         self.model.update(dt)
 
     def draw(self, surface: pygame.Surface) -> None:
+        self._sync_card_pulses()
         theme.vertical_gradient(surface, pygame.Color("#4C6FFF"), pygame.Color("#B8C6FF"))
         self._draw_score(surface)
         self._draw_side_panel(surface)
@@ -96,21 +105,26 @@ class MemoryCardsScene(Scene):
         else:
             self.hud.draw(surface)
 
+    def _sync_card_pulses(self) -> None:
+        if len(self.card_pulses) != self.model.card_count:
+            self.card_pulses = [0.0] * self.model.card_count
+
     def _card_rects(self) -> list[pygame.Rect]:
         rows, columns = self.model.rows, self.model.columns
+        gap = CARD_GAP if max(rows, columns) <= 4 else LARGE_CARD_GAP
         size = min(
-            (BOARD_AREA.width - CARD_GAP * (columns - 1)) // columns,
-            (BOARD_AREA.height - CARD_GAP * (rows - 1)) // rows,
+            (BOARD_AREA.width - gap * (columns - 1)) // columns,
+            (BOARD_AREA.height - gap * (rows - 1)) // rows,
         )
-        total_width = columns * size + (columns - 1) * CARD_GAP
-        total_height = rows * size + (rows - 1) * CARD_GAP
+        total_width = columns * size + (columns - 1) * gap
+        total_height = rows * size + (rows - 1) * gap
         start_x = BOARD_AREA.centerx - total_width // 2
         start_y = BOARD_AREA.centery - total_height // 2
         # DSA: The visible grid is derived by row/column arithmetic in O(n) for drawing.
         return [
             pygame.Rect(
-                start_x + column * (size + CARD_GAP),
-                start_y + row * (size + CARD_GAP),
+                start_x + column * (size + gap),
+                start_y + row * (size + gap),
                 size,
                 size,
             )
@@ -158,7 +172,7 @@ class MemoryCardsScene(Scene):
         theme.draw_card(surface, draw_rect, color=color, shadow_offset=6, radius=18)
         if face_up:
             pygame.draw.circle(surface, theme.WHITE, draw_rect.center, draw_rect.width // 3)
-            self._draw_object(surface, draw_rect.center, card.pair_id, draw_rect.width)
+            self._draw_icon(surface, draw_rect, card.pair_id)
         else:
             inset = max(26, draw_rect.width // 4)
             pygame.draw.rect(
@@ -171,88 +185,24 @@ class MemoryCardsScene(Scene):
                 surface, pygame.Color("#E8EEFF"), draw_rect.center, max(10, draw_rect.width // 11)
             )
 
+    def _draw_icon(self, surface: pygame.Surface, rect: pygame.Rect, pair_id: int) -> None:
+        icon = self.icons[pair_id % len(self.icons)]
+        target_size = max(36, round(rect.width * 0.72))
+        scaled = pygame.transform.smoothscale(icon, (target_size, target_size))
+        surface.blit(scaled, scaled.get_rect(center=rect.center))
+
     @staticmethod
-    def _draw_object(
-        surface: pygame.Surface, center: tuple[int, int], pair_id: int, size: int
-    ) -> None:
-        x, y = center
-        scale = size / 130
-        kind = pair_id % 8
-        if kind == 0:
-            for angle in range(0, 360, 60):
-                px = x + round(math.cos(math.radians(angle)) * 19 * scale)
-                py = y + round(math.sin(math.radians(angle)) * 19 * scale)
-                pygame.draw.circle(surface, theme.PINK, (px, py), round(13 * scale))
-            pygame.draw.circle(surface, theme.YELLOW, center, round(14 * scale))
-        elif kind == 1:
-            pygame.draw.circle(surface, pygame.Color("#F4A261"), center, round(26 * scale))
-            pygame.draw.polygon(
-                surface,
-                pygame.Color("#F4A261"),
-                [(x - 26, y - 16), (x - 12, y - 42), (x - 4, y - 12)],
-            )
-            pygame.draw.polygon(
-                surface,
-                pygame.Color("#F4A261"),
-                [(x + 26, y - 16), (x + 12, y - 42), (x + 4, y - 12)],
-            )
-            pygame.draw.circle(
-                surface, theme.BLACK, (x - round(9 * scale), y - round(4 * scale)), round(4 * scale)
-            )
-            pygame.draw.circle(
-                surface, theme.BLACK, (x + round(9 * scale), y - round(4 * scale)), round(4 * scale)
-            )
-            pygame.draw.circle(surface, theme.CORAL, (x, y + round(8 * scale)), round(5 * scale))
-        elif kind == 2:
-            pygame.draw.rect(
-                surface, theme.BLUE, pygame.Rect(x - 31, y - 12, 62, 25), border_radius=7
-            )
-            pygame.draw.polygon(
-                surface,
-                theme.SKY,
-                [(x - 18, y - 13), (x - 5, y - 30), (x + 18, y - 30), (x + 31, y - 13)],
-            )
-            pygame.draw.circle(surface, theme.BLACK, (x - 20, y + 18), 8)
-            pygame.draw.circle(surface, theme.BLACK, (x + 20, y + 18), 8)
-        elif kind == 3:
-            pygame.draw.rect(
-                surface, theme.CREAM, pygame.Rect(x - 28, y - 5, 56, 40), border_radius=4
-            )
-            pygame.draw.polygon(
-                surface, theme.CORAL, [(x - 34, y - 5), (x, y - 38), (x + 34, y - 5)]
-            )
-            pygame.draw.rect(
-                surface, theme.BROWN, pygame.Rect(x - 8, y + 12, 16, 23), border_radius=3
-            )
-        elif kind == 4:
-            pygame.draw.circle(surface, theme.YELLOW, center, round(28 * scale))
-            for angle in range(0, 360, 45):
-                start = (
-                    x + round(math.cos(math.radians(angle)) * 36 * scale),
-                    y + round(math.sin(math.radians(angle)) * 36 * scale),
-                )
-                end = (
-                    x + round(math.cos(math.radians(angle)) * 48 * scale),
-                    y + round(math.sin(math.radians(angle)) * 48 * scale),
-                )
-                pygame.draw.line(surface, theme.YELLOW_DARK, start, end, max(3, round(4 * scale)))
-        elif kind == 5:
-            pygame.draw.rect(
-                surface, theme.BROWN, pygame.Rect(x - 8, y + 4, 16, 34), border_radius=5
-            )
-            pygame.draw.circle(surface, theme.GREEN, (x, y - 20), round(24 * scale))
-            pygame.draw.circle(surface, theme.GREEN_DARK, (x - 18, y - 6), round(19 * scale))
-            pygame.draw.circle(surface, theme.GREEN_DARK, (x + 18, y - 6), round(19 * scale))
-        elif kind == 6:
-            pygame.draw.ellipse(surface, theme.SKY, pygame.Rect(x - 34, y - 17, 58, 34))
-            pygame.draw.polygon(
-                surface, theme.BLUE, [(x + 18, y), (x + 42, y - 18), (x + 42, y + 18)]
-            )
-            pygame.draw.circle(surface, theme.BLACK, (x - 16, y - 3), 4)
-        else:
-            pygame.draw.circle(surface, theme.CORAL, (x, y + 5), round(25 * scale))
-            pygame.draw.ellipse(surface, theme.GREEN, pygame.Rect(x + 1, y - 35, 25, 14))
-            pygame.draw.line(surface, theme.BROWN, (x, y - 16), (x + 7, y - 32), 4)
+    def _load_icons() -> list[pygame.Surface]:
+        atlas_path = files("games_for_grandpa.assets").joinpath("memory_objects.png")
+        atlas = pygame.image.load(str(atlas_path)).convert_alpha()
+        icons = []
+        for index in range(PAIR_ICON_COUNT):
+            row, column = divmod(index, ICON_COLUMNS)
+            source = pygame.Rect(column * ICON_SIZE, row * ICON_SIZE, ICON_SIZE, ICON_SIZE)
+            icons.append(atlas.subsurface(source).copy())
+        if len(icons) != ICON_COLUMNS * ICON_ROWS:
+            raise RuntimeError("memory icon atlas does not match configured grid")
+        return icons
 
     def _draw_result(self, surface: pygame.Surface) -> None:
         panel = pygame.Rect(330, 210, 620, 300)

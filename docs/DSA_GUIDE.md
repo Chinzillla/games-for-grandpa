@@ -88,7 +88,8 @@ hit hole is stored as a nullable index so the scene can draw dizzy feedback in O
 Cards are a list of visual IDs. The visible grid index maps directly to a card in O(1), and
 row/column arithmetic derives the current grid layout from the selected size. Matching two
 selected indices compares their visual IDs and either marks them matched or turns them back
-over.
+over. The object icon atlas has 18 unique pictures, so the largest grid is 6 x 6 with 18
+pairs.
 
 ## Jigsaw Puzzle
 

@@ -22,7 +22,7 @@ wheels = [
 
 [[package]]
 name = "games-for-grandpa"
-version = "0.3.3"
+version = "0.3.4"
 source = { editable = "." }
 dependencies = [
     { name = "pygame-ce" },

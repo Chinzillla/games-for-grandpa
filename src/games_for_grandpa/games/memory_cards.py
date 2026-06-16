@@ -5,9 +5,10 @@ from dataclasses import dataclass
 from enum import Enum
 
 DEFAULT_GRID = (3, 4)
-GRID_OPTIONS = ((2, 3), (3, 4), (4, 4))
+GRID_OPTIONS = ((2, 3), (3, 4), (4, 4), (4, 5), (4, 6), (6, 6))
 CARD_COUNT = DEFAULT_GRID[0] * DEFAULT_GRID[1]
 PAIR_COUNT = CARD_COUNT // 2
+PAIR_ICON_COUNT = 18
 MISMATCH_SECONDS = 0.75
 
 
@@ -100,4 +101,6 @@ class MemoryCardsModel:
         rows, columns = grid_size
         if (rows * columns) % 2 != 0:
             raise ValueError("memory card grid must contain an even number of cards")
+        if rows * columns // 2 > PAIR_ICON_COUNT:
+            raise ValueError("memory card grid needs more icons than the atlas provides")
         return rows, columns

@@ -16,7 +16,7 @@ data structures, algorithms, testing, packaging, and release automation.
 - **Space Defense:** move horizontally while automatic shots clear varied ships, shields block fire, and enemy bolts add pressure.
 - **Maze Chase:** click a neighboring path or destination and collect the dots.
 - **Whack-a-Mole:** hit the visible mole with a mallet and watch for dizzy feedback.
-- **Memory Cards:** match picture cards and choose a larger grid from the side panel.
+- **Memory Cards:** match colorful object cards and choose grids up to 6 x 6 from the side panel.
 - **Jigsaw Puzzle:** drag shuffled pieces from the tray onto the picture board, with an optional photo picker.
 
 Artwork is original, using code-drawn UI plus generated transparent sprites. The app does

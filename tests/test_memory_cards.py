@@ -62,3 +62,20 @@ def test_memory_grid_size_can_change() -> None:
     assert model.card_count == 16
     assert model.pair_count == 8
     assert len(model.cards) == 16
+
+    model.reset((6, 6))
+
+    assert model.card_count == 36
+    assert model.pair_count == 18
+    assert len(model.cards) == 36
+
+
+def test_memory_rejects_grids_larger_than_icon_set() -> None:
+    model = MemoryCardsModel(rng=random.Random(8))
+
+    try:
+        model.reset((6, 8))
+    except ValueError as error:
+        assert "unsupported memory grid" in str(error)
+    else:
+        raise AssertionError("unsupported memory grid should fail")
